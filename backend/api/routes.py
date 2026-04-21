@@ -15,7 +15,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
 from services.crm_agent import CRMAgent, CRMAPIClient
-from services.minimax_llm import MiniMaxChatModel
+from services.llm_factory import create_llm, LLMFactory, BaseLLM
+from typing import TYPE_CHECKING
 
 # 请求模型
 class AuthRequest(BaseModel):
@@ -62,7 +63,7 @@ class SessionResponse(BaseModel):
 router = APIRouter()
 
 # 全局实例
-_llm_service: Optional[MiniMaxChatModel] = None
+_llm_service: Optional[BaseLLM] = None
 _api_client: Optional[CRMAPIClient] = None
 _agent: Optional[CRMAgent] = None
 
@@ -73,7 +74,8 @@ def get_agent() -> CRMAgent:
 
     if _agent is None:
         _api_client = CRMAPIClient(base_url="http://localhost:8001")
-        _llm_service = MiniMaxChatModel()
+        # 使用 LLM 工厂创建 LLM，支持多模型
+        _llm_service = create_llm()
         _agent = CRMAgent(_api_client, _llm_service)
 
     return _agent

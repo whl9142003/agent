@@ -1,0 +1,73 @@
+{
+    "products": {
+        "5G畅享128": {
+            "name": "5G畅享128元套餐",
+            "price": 128,
+            "data_quota": "30GB",
+            "voice_quota": "500分钟",
+            "description": "适合轻度流量用户",
+            "speed": "500Mbps",
+            "tags": ["5G", "入门", "实惠"]
+        },
+        "5G畅享198": {
+            "name": "5G畅享198元套餐",
+            "price": 198,
+            "data_quota": "60GB",
+            "voice_quota": "1000分钟",
+            "description": "适合中度流量用户",
+            "speed": "1Gbps",
+            "tags": ["5G", "中等", "推荐"]
+        },
+        "5G畅享298": {
+            "name": "5G畅享298元套餐",
+            "price": 298,
+            "data_quota": "150GB",
+            "voice_quota": "无限",
+            "description": "适合重度流量用户",
+            "speed": "1Gbps",
+            "tags": ["5G", "旗舰", " unlimited"]
+        }
+    },
+    "status_map": {
+        "pending_payment": "待支付",
+        "paid": "已支付",
+        "processing": "处理中",
+        "completed": "已完成",
+        "cancelled": "已取消",
+        "shipped": "已发货",
+        "active": "已激活",
+        "suspended": "已停机",
+        "expired": "已过期"
+    },
+    "packages": {
+        "5G畅享": "5G畅享套餐",
+        "不限量": "不限量套餐",
+        "畅享": "畅享套餐",
+        "全球通": "全球通套餐"
+    },
+    "faqs": [
+        {
+            "question": "如何查询余额",
+            "keywords": ["余额", "查询余额", "还有多少钱"],
+            "answer": "您可以拨打10086查询余额，或登录APP查看账户余额。"
+        },
+        {
+            "question": "如何注销号码",
+            "keywords": ["注销", "销户", "不用了"],
+            "answer": "注销号码需携带身份证到营业厅办理，欠费需结清。"
+        },
+        {
+            "question": "如何更改套餐",
+            "keywords": ["改套餐", "换套餐", "更改套餐"],
+            "answer": "可以通过APP、网上营业厅或拨打10086更改套餐。"
+        }
+    ],
+    "intent_keywords": {
+        "query_product": ["套餐", "产品", "流量", "5g", "4g", "多少钱", "价格"],
+        "query_order": ["订单", "进度", "状态", "查询", "到哪里"],
+        "payment": ["支付", "付款", "付钱", "确认"],
+        "login": ["登录", "登陆", "密码", "认证"],
+        "recommend": ["推荐", "适合", "帮我选"],
+        "transfer": ["转人工", "人工客服", "客服"]
+    }
+}
