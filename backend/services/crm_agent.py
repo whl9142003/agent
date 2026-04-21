@@ -251,7 +251,7 @@ class CRMAgent:
         if any(kw in message_lower for kw in need_auth_keywords) and not state.authenticated:
             return {
                 "type": "auth_required",
-                "message": "🔐 该操作需要先登录验证。\n\n请输入：手机号 密码\n\n例如：15300000574 Tianyuan@410"
+                "message": "🔐 该操作需要先登录验证。\n\n请输入手机号和密码"
             }
         
         # 使用 LLM 生成回复（含上下文记忆）
@@ -323,11 +323,11 @@ class CRMAgent:
                     else:
                         response_msg = "查询失败，请稍后重试。"
                 else:
-                    response_msg = "🔐 查询订单需要先登录。请输入：手机号 密码"
+                    response_msg = "🔐 查询订单需要先登录。请输入手机号和密码"
                     
             elif "订购" in message_lower:
                 if not state.authenticated:
-                    return {"type": "auth_required", "message": "🔐 订购需要先登录。请输入：手机号 密码"}
+                    return {"type": "auth_required", "message": "🔐 订购需要先登录。请输入手机号和密码"}
                 # 需要产品信息才能创建订单，这里返回指引
                 response_msg = "好的，您想订购产品。请告诉我想订购哪个产品？输入产品名称或说'推荐'获取推荐。"
                 
@@ -342,7 +342,7 @@ class CRMAgent:
                     response_msg = "您当前没有待支付订单。"
                     
             elif "login" in message_lower or "登录" in message_lower:
-                response_msg = "🔐 请输入手机号和密码完成登录（格式：手机号 密码）\n\n例如：15300000574 Tianyuan@410"
+                response_msg = "🔐 请输入手机号和密码完成登录（格式：手机号 密码）"
                 state.set_topic("login")
                 
             elif "menu" in message_lower or any(kw in message_lower for kw in ["帮助", "功能", "其他"]):
