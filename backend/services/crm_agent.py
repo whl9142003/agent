@@ -9,29 +9,57 @@ import requests
 from typing import Optional, Dict, List, Any
 from datetime import datetime
 
-# 知识库
+import config
 from services.knowledge_base import get_knowledge_base, KnowledgeBase
 
 
 # ============ CRM API Client ============
 
 class CRMAPIClient:
-    """CRM API 客户端"""
+    """CRM API 客户端 - 对接真实CRM业务系统"""
 
-    def __init__(self, base_url: str = "http://localhost:8001"):
-        self.base_url = base_url
+    def __init__(self, base_url: str = None):
+        self.base_url = base_url or config.CRM_API_BASE_URL
+        self._session = requests.Session()
+        self._session.verify = False
+
+    def _request(self, method: str, path: str, data: dict = None, params: dict = None) -> Dict:
+        """统一请求方法"""
+        url = f"{self.base_url}{path}"
+        try:
+            if method == "GET":
+                response = self._session.get(url, params=params, timeout=30)
+            else:
+                response = self._session.post(url, json=data, timeout=30)
+            return response.json()
+        except Exception as e:
+            print(f"CRM API Error: {path} - {e}")
+            return {"code": "1", "message": str(e)}
+
+    def query_customer(self, phone: str) -> Dict:
+        """客户查询接口 /CCInter/open/cust/query"""
+        data = {"custVal": phone}
+        return self._request("POST", "/CCInter/open/cust/query", data=data)
+
+    def query_customer_offers(self, cust_id: str) -> Dict:
+        """客户订购产品查询接口 /CCInter/open/cust/offers"""
+        data = {"custId": cust_id}
+        return self._request("POST", "/CCInter/open/cust/offers", data=data)
+
+    def query_sub_offers(self, offer_inst_id: str) -> Dict:
+        """附属销售品查询接口 /CCInter/open/cust/sub/offers"""
+        data = {"offerInstId": offer_inst_id}
+        return self._request("POST", "/CCInter/open/cust/sub/offers", data=data)
 
     async def send_verification_code(self, phone: str) -> Dict:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(f"{self.base_url}/api/auth/send-code", json={"phone": phone})
-            return response.json()
+        resp = self._session.post(f"{self.base_url}/api/auth/send-code", json={"phone": phone}, timeout=30)
+        return resp.json()
 
-    async def authenticate(self, phone: str, code: str = None, password: str = None, auth_type: str = "password") -> Dict:
+    def authenticate(self, phone: str, code: str = None, password: str = None, auth_type: str = "password") -> Dict:
         auth_data = {"phone": phone, "auth_type": auth_type, "password": password}
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(f"{self.base_url}/api/auth/login", json=auth_data)
-                return response.json()
+            resp = self._session.post(f"{self.base_url}/api/auth/login", json=auth_data, timeout=30)
+            return resp.json()
         except Exception as e:
             return {"success": False, "message": str(e)}
 
@@ -39,34 +67,29 @@ class CRMAPIClient:
         params = {}
         if keyword: params["keyword"] = keyword
         if category: params["category"] = category
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(f"{self.base_url}/api/products", params=params)
-            return response.json()
+        resp = self._session.get(f"{self.base_url}/api/products", params=params, timeout=30)
+        return resp.json()
 
     async def get_recommendations(self, customer_id: str) -> Dict:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(f"{self.base_url}/api/products/recommend/{customer_id}")
-            return response.json()
+        resp = self._session.get(f"{self.base_url}/api/products/recommend/{customer_id}", timeout=30)
+        return resp.json()
 
     async def create_order(self, customer_id: str, product_id: str, product_name: str, price: float) -> Dict:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(f"{self.base_url}/api/orders", json={
-                "customer_id": customer_id, "product_id": product_id,
-                "product_name": product_name, "price": price
-            })
-            return response.json()
+        resp = self._session.post(f"{self.base_url}/api/orders", json={
+            "customer_id": customer_id, "product_id": product_id,
+            "product_name": product_name, "price": price
+        }, timeout=30)
+        return resp.json()
 
     async def get_orders(self, customer_id: str) -> Dict:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(f"{self.base_url}/api/orders/{customer_id}")
-            return response.json()
+        resp = self._session.get(f"{self.base_url}/api/orders/{customer_id}", timeout=30)
+        return resp.json()
 
     async def process_payment(self, order_id: str, customer_id: str, payment_method: str = "account_balance") -> Dict:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(f"{self.base_url}/api/payment/pay", json={
-                "order_id": order_id, "customer_id": customer_id, "payment_method": payment_method
-            })
-            return response.json()
+        resp = self._session.post(f"{self.base_url}/api/payment/pay", json={
+            "order_id": order_id, "customer_id": customer_id, "payment_method": payment_method
+        }, timeout=30)
+        return resp.json()
 
 
 # ============ 会话状态管理 (支持上下文记忆) ============
@@ -83,11 +106,25 @@ class CRMState:
         self.current_package: str = ""
         self.current_order: Optional[Dict] = None
         self.conversation_history: List[Dict] = []
-        self.last_topic: Optional[str] = None  # 记录最后的话题
-        
+        self.last_topic: Optional[str] = None
+        self.offers: List[Dict] = []
+
         # 会话配置
         self.max_history = config.SESSION_CONFIG.get("max_history", 20)
         self.context_window = config.SESSION_CONFIG.get("context_window", 10)
+
+    def set_offers(self, offers: List[Dict]):
+        """设置客户订购产品列表"""
+        self.offers = offers
+
+    def get_offers_summary(self) -> str:
+        """获取订购产品摘要"""
+        if not self.offers:
+            return "暂无订购产品"
+        lines = []
+        for offer in self.offers[:5]:
+            lines.append(f"📦 {offer.get('offerName', 'N/A')} ({offer.get('regionName', 'N/A')})")
+        return "\n".join(lines)
 
     def add_message(self, role: str, content: str):
         """添加消息到历史记录"""
@@ -150,7 +187,8 @@ class CRMState:
             "current_package": self.current_package,
             "current_order": self.current_order,
             "conversation_history": self.conversation_history,
-            "last_topic": self.last_topic
+            "last_topic": self.last_topic,
+            "offers": self.offers
         }
 
 
@@ -197,6 +235,31 @@ class CRMAgent:
         if session_id in self.sessions:
             del self.sessions[session_id]
 
+    def _format_offers(self, offers: List[Dict]) -> str:
+        """格式化订购产品信息"""
+        if not offers:
+            return "暂无订购产品"
+
+        lines = []
+        for offer in offers:
+            offer_name = offer.get("offerName", "N/A")
+            region_name = offer.get("regionName", "N/A")
+            eff_date = offer.get("effDate", "N/A")
+            exp_date = offer.get("expDate", "N/A")
+            sub_offers = offer.get("subOfferInst", [])
+
+            main_info = f"📦 {offer_name}\n   地域：{region_name}\n   生效日期：{eff_date[:10] if eff_date else 'N/A'}\n   失效日期：{exp_date[:10] if exp_date else 'N/A'}"
+            lines.append(main_info)
+
+            if sub_offers:
+                for sub in sub_offers:
+                    sub_name = sub.get("offerName", "N/A")
+                    sub_eff = sub.get("effDate", "N/A")[:10] if sub.get("effDate") else "N/A"
+                    sub_exp = sub.get("expDate", "N/A")[:10] if sub.get("expDate") else "N/A"
+                    lines.append(f"   └─ 📱 {sub_name} (生效: {sub_eff}, 失效: {sub_exp})")
+
+        return "\n\n".join(lines)
+
     async def process_message(self, session_id: str, message: str) -> Dict[str, Any]:
         """处理用户消息 - 使用 LangChain LLM，支持上下文记忆"""
         state = self.get_session(session_id)
@@ -215,34 +278,56 @@ class CRMAgent:
         # 检查是否是登录消息（手机号+密码格式）
         phone_match = re.search(r"1[3-9]\d{9}", message)
         has_space = " " in message or "," in message
-        
+
         if phone_match and has_space:
-            parts = re.split(r"[,\s]+", message)
             phone = phone_match.group()
+            parts = re.split(r"[,\s]+", message)
             password = next((p for p in parts if len(p) >= 6 and not p.isdigit()), None)
-            
+
             if password:
-                result = await self.api_client.authenticate(phone, password=password)
-                if result.get("success"):
-                    customer = result.get("customer", {})
-                    state.authenticated = True
-                    state.customer_id = customer.get("customer_id")
-                    state.customer_name = customer.get("name")
-                    state.phone = customer.get("phone")
-                    state.account_balance = customer.get("account_balance", 0)
-                    state.current_package = customer.get("current_package", "")
-                    state.set_topic("login")  # 设置话题为登录
-                    
-                    success_msg = f"✅ 认证成功！\n\n尊敬的用户 {state.customer_name}，您好！\n您当前使用的是：{state.current_package}\n账户余额：{state.account_balance}元"
-                    state.add_message("assistant", success_msg)
-                    
-                    return {
-                        "type": "auth_success",
-                        "message": success_msg,
-                        "customer": customer
+                # 调用登录接口（mock-api中已包含Step 2/3/4的调用）
+                auth_result = self.api_client.authenticate(phone, password=password)
+                print(f"[Agent] Auth result: {auth_result}")
+                
+                if not auth_result.get("success"):
+                    error_msg = auth_result.get("message", "登录失败")
+                    return {"type": "auth_failed", "message": f"认证失败：{error_msg}"}
+                
+                # 从登录结果中获取客户信息和已订购产品
+                customer = auth_result.get("customer", {})
+                cust_id = customer.get("customer_id", "")
+                cust_name = customer.get("name", "") or customer.get("full_name", "")
+                account_balance = customer.get("account_balance", 0.0)
+                current_package = customer.get("current_package", "未知套餐")
+                offers_list = customer.get("offers", [])
+                
+                # 设置会话状态
+                state.authenticated = True
+                state.customer_id = cust_id
+                state.customer_name = cust_name
+                state.phone = phone
+                state.account_balance = account_balance
+                state.current_package = current_package
+                state.set_offers(offers_list)
+                
+                offers_msg = self._format_offers(offers_list)
+                
+                success_msg = f"✅ 认证成功！\n\n尊敬的用户{cust_name}，您好！\n您当前使用的是：{current_package}\n账户余额：{state.account_balance}元\n\n📋 您的订购产品：\n{offers_msg if offers_msg != '暂无订购产品' else '暂无订购产品'}"
+
+                state.set_topic("login")
+                state.add_message("assistant", success_msg)
+
+                return {
+                    "type": "auth_success",
+                    "message": success_msg,
+                    "customer": {
+                        "customer_id": cust_id, 
+                        "name": cust_name, 
+                        "phone": phone,
+                        "account_balance": state.account_balance,
+                        "current_package": current_package
                     }
-                else:
-                    return {"type": "auth_failed", "message": "登录失败，请检查手机号和密码后重试。"}
+                }
         
         # 检查是否需要登录但未登录
         message_lower = message.lower()

@@ -155,37 +155,101 @@ async def call_crm_login(phone: str, password: str, serial_number: str = None) -
     }
 
     try:
-        print(f"[CRM Login] Calling CRM API for phone: {phone}")
+        print(f"[CRM Login] Step 1: Calling CRM API: {VERIFY_CODE_URL}")
         async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+            # Step 1: 调用登录接口
             response = await client.post(
                 VERIFY_CODE_URL,
                 json=payload,
                 headers=headers
             )
             result = response.json()
-            print(f"[CRM Login] Response: {result}")
+            print(f"[CRM Login] Step 1 Response: {result}")
 
-            if result.get("code") == "0":
-                user_data = result.get("resultObj", {})
-                customer = {
-                    "customer_id": user_data.get("operUserId", ""),
-                    "phone": phone,
-                    "name": user_data.get("userName", ""),
-                    "full_name": user_data.get("userName", ""),
-                    "account_id": user_data.get("operUserId", ""),
-                    "account_balance": 0.0,  # 需要另外查询
-                    "subscriber_id": user_data.get("operUserId", ""),
-                    "current_package": "未知套餐",
-                    "package_price": 0,
-                    "ticket_id": user_data.get("ticketId", ""),
-                    "role_id": user_data.get("roleId", ""),
-                    "user_type": user_data.get("userType", ""),
-                    "cust_type": user_data.get("custType", "")
-                }
-                return {"success": True, "customer": customer}
-            else:
+            if result.get("code") != "0":
                 error_msg = result.get("detail") or result.get("message") or "登录失败"
                 return {"success": False, "message": error_msg}
+            
+            user_data = result.get("resultObj", {})
+            cust_id = user_data.get("operUserId", "")
+            
+            # Step 2: 调用 /CCInter/open/cust/query 获取客户信息
+            print(f"[CRM Login] Step 2: Calling /CCInter/open/cust/query")
+            cust_response = await client.post(
+                f"{CRM_API_URL}/CCInter/open/cust/query",
+                json={"custVal": phone},
+                headers=headers
+            )
+            cust_result = cust_response.json()
+            print(f"[CRM Login] Step 2 Response: {cust_result}")
+            
+            if cust_result.get("code") == "0" and cust_result.get("resultObj", {}).get("list"):
+                cust_data = cust_result["resultObj"]["list"][0]
+                cust_id = cust_data.get("custId", "") or cust_id
+                cust_name = cust_data.get("custName", "")
+            else:
+                cust_name = user_data.get("userName", "")
+            
+            current_package = "未知套餐"
+            account_balance = 0.0
+            offers_list = []
+            
+            # Step 3: 调用 /CCInter/open/cust/offers 获取已订购产品
+            if cust_id:
+                print(f"[CRM Login] Step 3: Calling /CCInter/open/cust/offers")
+                offers_response = await client.post(
+                    f"{CRM_API_URL}/CCInter/open/cust/offers",
+                    json={"custId": cust_id},
+                    headers=headers
+                )
+                offers_result = offers_response.json()
+                print(f"[CRM Login] Step 3 Response: {offers_result}")
+                
+                if offers_result.get("code") == "0":
+                    offers_list = offers_result.get("resultObj", {}).get("list", [])
+                    if offers_list:
+                        current_package = offers_list[0].get("offerName", "未知套餐")
+                        
+                        # Step 4: 对每个主销售品调用 /CCInter/open/cust/sub/offers 获取附属销售品
+                        for offer in offers_list:
+                            offer_inst_id = offer.get("offerInstId", "")
+                            if offer_inst_id:
+                                print(f"[CRM Login] Step 4: Calling /CCInter/open/cust/sub/offers")
+                                try:
+                                    sub_response = await client.post(
+                                        f"{CRM_API_URL}/CCInter/open/cust/sub/offers",
+                                        json={"offerInstId": offer_inst_id},
+                                        headers=headers
+                                    )
+                                    sub_result = sub_response.json()
+                                    print(f"[CRM Login] Step 4 Response: {sub_result}")
+                                    
+                                    if sub_result.get("code") == "0":
+                                        offer["subOfferInst"] = sub_result.get("resultObj", {}).get("list", [])
+                                    else:
+                                        offer["subOfferInst"] = []
+                                except Exception as e:
+                                    print(f"[CRM Login] Step 4 Error: {e}")
+                                    offer["subOfferInst"] = []
+            
+            customer = {
+                "customer_id": cust_id,
+                "phone": phone,
+                "name": cust_name,
+                "full_name": cust_name,
+                "account_id": cust_id,
+                "account_balance": account_balance,
+                "subscriber_id": cust_id,
+                "current_package": current_package,
+                "package_price": 0,
+                "ticket_id": user_data.get("ticketId", ""),
+                "role_id": user_data.get("roleId", ""),
+                "user_type": user_data.get("userType", ""),
+                "cust_type": user_data.get("custType", ""),
+                "offers": offers_list
+            }
+            print(f"[CRM Login] Final customer: {customer}")
+            return {"success": True, "customer": customer}
     except httpx.ConnectError as e:
         print(f"[CRM Login] Connection error: {e}")
         return {"success": False, "message": f"无法连接到CRM系统: {str(e)}"}
@@ -236,7 +300,8 @@ async def login(request: AuthRequest):
             "subscriber_id": customer["subscriber_id"],
             "current_package": customer["current_package"],
             "package_price": customer["package_price"],
-            "ticket_id": customer.get("ticket_id", "")
+            "ticket_id": customer.get("ticket_id", ""),
+            "offers": customer.get("offers", [])
         }
     }
 
@@ -477,6 +542,122 @@ async def get_customer_info(customer_id: str):
                 "customer": customer
             }
     raise HTTPException(status_code=404, detail="客户不存在")
+
+# ============ 客户信息查询 ============
+
+@app.post("/CCInter/open/cust/query")
+async def query_customer(request: dict):
+    """CRM客户信息查询接口"""
+    cust_val = request.get("custVal", "")
+    print(f"[Mock] query_customer called with custVal: {cust_val}")
+    
+    # 查找匹配的客户
+    for phone, customer in MOCK_CUSTOMERS.items():
+        if phone == cust_val or customer.get("customer_id") == cust_val:
+            print(f"[Mock] Found customer: {customer}")
+            return {
+                "code": "0",
+                "message": "成功",
+                "resultObj": {
+                    "list": [{
+                        "custId": customer["customer_id"],
+                        "custName": customer["name"],
+                        "custType": customer.get("cust_type", "个人"),
+                        "phone": customer["phone"],
+                        "acctId": customer["account_id"],
+                        "subscriberId": customer["subscriber_id"]
+                    }]
+                }
+            }
+    
+    # 新用户，返回模拟数据
+    mock_cust_id = f"C{len(MOCK_CUSTOMERS) + 1:03d}"
+    mock_customer = {
+        "custId": mock_cust_id,
+        "custName": f"用户{cust_val[-4:]}",
+        "custType": "个人",
+        "phone": cust_val,
+        "acctId": f"A{len(MOCK_CUSTOMERS) + 1:03d}",
+        "subscriberId": f"S{len(MOCK_CUSTOMERS) + 1:03d}"
+    }
+    print(f"[Mock] Returning mock customer: {mock_customer}")
+    
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "list": [mock_customer]
+        }
+    }
+
+
+@app.post("/CCInter/open/cust/offers")
+async def query_customer_offers(request: dict):
+    """客户订购主销售品查询"""
+    cust_id = request.get("custId", "")
+    print(f"[Mock] query_customer_offers called with custId: {cust_id}")
+    
+    # 模拟已订购产品数据
+    mock_offers = [
+        {
+            "offerInstId": f"O001-{cust_id}",
+            "offerName": "5G畅享128套餐",
+            "regionName": "上海市",
+            "effDate": "2024-01-01T00:00:00",
+            "expDate": "2099-12-31T23:59:59",
+            "status": "生效",
+            "subOfferInst": [
+                {
+                    "offerInstId": f"SO001-{cust_id}",
+                    "offerName": "来电显示",
+                    "effDate": "2024-01-01T00:00:00",
+                    "expDate": "2099-12-31T23:59:59",
+                    "status": "生效"
+                },
+                {
+                    "offerInstId": f"SO002-{cust_id}",
+                    "offerName": "短信包",
+                    "effDate": "2024-01-01T00:00:00",
+                    "expDate": "2099-12-31T23:59:59",
+                    "status": "生效"
+                }
+            ]
+        },
+        {
+            "offerInstId": f"O002-{cust_id}",
+            "offerName": "流量加油包(10GB)",
+            "regionName": "上海市",
+            "effDate": "2026-04-01T00:00:00",
+            "expDate": "2026-04-30T23:59:59",
+            "status": "生效",
+            "subOfferInst": []
+        }
+    ]
+    
+    print(f"[Mock] Returning offers: {mock_offers}")
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "list": mock_offers
+        }
+    }
+
+
+@app.post("/CCInter/open/cust/sub/offers")
+async def query_sub_offers(request: dict):
+    """客户订购附属销售品查询"""
+    offer_inst_id = request.get("offerInstId", "")
+    print(f"[Mock] query_sub_offers called with offerInstId: {offer_inst_id}")
+    
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "list": []
+        }
+    }
+
 
 # ============ 账户余额查询 ============
 

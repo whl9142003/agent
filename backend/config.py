@@ -1,14 +1,17 @@
+# CRM 业务系统配置
+CRM_API_BASE_URL = "http://127.0.0.1:8001"
+
 # 大模型配置
 # 支持: minimax, deepseek, kimi
 
 # 默认使用的大模型
-DEFAULT_PROVIDER = "minimax"
+DEFAULT_PROVIDER = "deepseek"
 
 # 各模型配置
 PROVIDERS = {
     "minimax": {
         "name": "MiniMax",
-        "api_key": "sk-cp-IESAM4xsZvAn_S0ZqbZF2LRX19gDH1_D5F_H14nAFkVlSVh1wYQoGuqa_UhHfvQPHklqgQEluJbiyn_x_9i7KFT0HaWJFRNoQ6SCum1_QMqIkhxzOnQ2TY8",  # 请填入 API Key
+        "api_key": "",  # 请填入 API Key
         "base_url": "https://api.minimax.chat/v1",
         "model": "MiniMax-M2.1",
         "temperature": 0.7,
@@ -16,7 +19,7 @@ PROVIDERS = {
     },
     "deepseek": {
         "name": "DeepSeek",
-        "api_key": "",  # 请填入 DeepSeek API Key
+        "api_key": "sk-2bc0703468734baba05e5f3dd2162aa7",  # 请填入 DeepSeek API Key
         "base_url": "https://api.deepseek.com/v1",
         "model": "deepseek-chat",
         "temperature": 0.7,

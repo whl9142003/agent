@@ -10,10 +10,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from datetime import datetime
 
-# 添加项目根目录到Python路径
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
+import config
 from services.crm_agent import CRMAgent, CRMAPIClient
 from services.llm_factory import create_llm, LLMFactory, BaseLLM
 from typing import TYPE_CHECKING
@@ -73,8 +73,7 @@ def get_agent() -> CRMAgent:
     global _llm_service, _api_client, _agent
 
     if _agent is None:
-        _api_client = CRMAPIClient(base_url="http://localhost:8001")
-        # 使用 LLM 工厂创建 LLM，支持多模型
+        _api_client = CRMAPIClient(base_url=config.CRM_API_BASE_URL)
         _llm_service = create_llm()
         _agent = CRMAgent(_api_client, _llm_service)
 
@@ -266,11 +265,37 @@ async def process_payment(session_id: str, order_id: str, payment_method: str = 
 
 # ============ 客户信息接口 ============
 
-@router.get("/customer/{customer_id}")
-async def get_customer(customer_id: str):
-    """获取客户信息"""
+class CustomerQueryRequest(BaseModel):
+    phone: str
+
+class OffersQueryRequest(BaseModel):
+    cust_id: str
+
+class SubOffersQueryRequest(BaseModel):
+    offer_inst_id: str
+
+
+@router.post("/customer/query")
+async def query_customer(request: CustomerQueryRequest):
+    """客户查询 /CCInter/open/cust/query"""
     agent = get_agent()
-    result = await agent.api_client.get_customer_info(customer_id)
+    result = await agent.api_client.query_customer(request.phone)
+    return result
+
+
+@router.post("/customer/offers")
+async def query_customer_offers(request: OffersQueryRequest):
+    """客户订购产品查询 /CCInter/open/cust/offers"""
+    agent = get_agent()
+    result = await agent.api_client.query_customer_offers(request.cust_id)
+    return result
+
+
+@router.post("/customer/offers/sub")
+async def query_sub_offers(request: SubOffersQueryRequest):
+    """附属销售品查询 /CCInter/open/cust/sub/offers"""
+    agent = get_agent()
+    result = await agent.api_client.query_sub_offers(request.offer_inst_id)
     return result
 
 
