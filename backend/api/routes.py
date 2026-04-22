@@ -4,6 +4,8 @@ CRM营业受理智能体API接口
 """
 import uuid
 import sys
+import json
+import os
 from pathlib import Path
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Depends
@@ -18,6 +20,59 @@ from services.crm_agent import CRMAgent, CRMAPIClient
 from services.llm_factory import create_llm, LLMFactory, BaseLLM
 from typing import TYPE_CHECKING
 
+# 会话存储路径
+SESSION_DIR = BASE_DIR / "data" / "sessions"
+SESSION_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def save_session_to_file(session_id: str, messages: list, title: str = ""):
+    """保存会话到文件"""
+    filepath = SESSION_DIR / f"{session_id}.json"
+    data = {
+        "session_id": session_id,
+        "title": title,
+        "messages": messages,
+        "updated_at": datetime.now().isoformat()
+    }
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def load_session_from_file(session_id: str) -> dict:
+    """从文件加载会话"""
+    filepath = SESSION_DIR / f"{session_id}.json"
+    if filepath.exists():
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return None
+
+
+def delete_session_file(session_id: str):
+    """删除会话文件"""
+    filepath = SESSION_DIR / f"{session_id}.json"
+    if filepath.exists():
+        filepath.unlink()
+
+
+def get_all_sessions_from_files() -> list:
+    """从文件获取所有会话"""
+    sessions = []
+    for filepath in SESSION_DIR.glob("*.json"):
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                sessions.append({
+                    "session_id": data.get("session_id", filepath.stem),
+                    "title": data.get("title", "新对话"),
+                    "updated_at": data.get("updated_at", ""),
+                    "message_count": len(data.get("messages", []))
+                })
+        except:
+            continue
+    # 按更新时间倒序排列
+    sessions.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
+    return sessions
+
 # 请求模型
 class AuthRequest(BaseModel):
     phone: str
@@ -31,6 +86,9 @@ class SendCodeRequest(BaseModel):
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+
+class SessionRequest(BaseModel):
+    session_id: str = ""
 
 class CreateOrderRequest(BaseModel):
     session_id: str
@@ -86,6 +144,7 @@ def get_agent() -> CRMAgent:
 async def create_session():
     """创建新会话"""
     session_id = str(uuid.uuid4())
+    save_session_to_file(session_id, [], "新对话")
     return {
         "success": True,
         "session_id": session_id,
@@ -93,62 +152,73 @@ async def create_session():
     }
 
 
-@router.post("/session/clear")
-async def clear_session(session_id: str):
-    """清除会话"""
+@router.get("/session/list")
+async def list_sessions():
+    """获取会话列表"""
+    sessions = get_all_sessions_from_files()
+    return {"success": True, "sessions": sessions}
+
+
+@router.post("/session/load")
+async def load_session(request: SessionRequest):
+    """加载会话历史"""
+    session_id = request.session_id
+    if not session_id:
+        return {"success": True, "session_id": "", "messages": []}
+    
+    data = load_session_from_file(session_id)
+    if data:
+        agent = get_agent()
+        state = agent.get_session(session_id)
+        state.set_conversation_history(data.get("messages", []))
+        return {
+            "success": True,
+            "session_id": session_id,
+            "messages": data.get("messages", [])
+        }
+    return {
+        "success": True,
+        "session_id": session_id,
+        "messages": []
+    }
+
+
+@router.post("/session/save")
+async def save_session(request: SessionRequest):
+    """保存会话"""
+    session_id = request.session_id
+    if not session_id:
+        return {"success": True, "message": "会话ID为空"}
+    
     agent = get_agent()
-    agent.clear_session(session_id)
+    state = agent.get_session(session_id)
+    if state.conversation_history:
+        title = ""
+        for msg in state.conversation_history:
+            if msg.get("role") == "user":
+                title = msg.get("content", "")[:30]
+                break
+        save_session_to_file(session_id, state.conversation_history, title)
+    return {"success": True, "message": "会话已保存"}
+
+
+@router.post("/session/clear")
+async def clear_session(request: SessionRequest):
+    """清除会话"""
+    if request.session_id:
+        agent = get_agent()
+        agent.clear_session(request.session_id)
     return {"success": True, "message": "会话已清除"}
 
 
-# ============ 认证接口 ============
-
-@router.post("/auth/send-code")
-async def send_verification_code(request: SendCodeRequest):
-    """发送验证码"""
-    agent = get_agent()
-    result = await agent.api_client.send_verification_code(request.phone)
-    return result
-
-
-@router.post("/auth/login", response_model=AuthResponse)
-async def login(request: AuthRequest):
-    """登录认证"""
-    agent = get_agent()
-    result = await agent.api_client.authenticate(
-        phone=request.phone,
-        code=request.code,
-        password=request.password,
-        auth_type=request.auth_type
-    )
-
-    if result.get("success"):
-        # 创建会话
-        session_id = str(uuid.uuid4())
-        state = agent.get_session(session_id)
-
-        # 设置用户信息
-        customer = result.get("customer", {})
-        state.authenticated = True
-        state.customer_id = customer.get("customer_id")
-        state.customer_name = customer.get("name")
-        state.phone = customer.get("phone")
-        state.account_balance = customer.get("account_balance", 0)
-        state.current_package = customer.get("current_package", "")
-
-        return {
-            "success": True,
-            "message": "登录成功",
-            "token": session_id,
-            "customer": customer
-        }
-
-    return {
-        "success": False,
-        "message": result.get("detail", "认证失败"),
-        "token": None,
-        "customer": None
-    }
+@router.post("/session/delete")
+async def delete_session(request: SessionRequest):
+    """删除会话"""
+    if request.session_id:
+        agent = get_agent()
+        agent.clear_session(request.session_id)
+        delete_session_file(request.session_id)
+    return {"success": True, "message": "会话已删除"}
 
 
 # ============ 对话接口 ============
@@ -163,6 +233,16 @@ async def chat(request: ChatRequest):
             session_id=request.session_id,
             message=request.message
         )
+        
+        # 保存会话到文件
+        state = agent.get_session(request.session_id)
+        if state.conversation_history:
+            title = ""
+            for msg in state.conversation_history:
+                if msg.get("role") == "user":
+                    title = msg.get("content", "")[:30]
+                    break
+            save_session_to_file(request.session_id, state.conversation_history, title)
 
         return {
             "success": True,

@@ -1,0 +1,27 @@
+{
+  "session_id": "4eef24f7-50ce-4b6e-86ad-817ba1da19af",
+  "title": "请说出你爱好",
+  "messages": [
+    {
+      "role": "user",
+      "content": "请说出你爱好",
+      "timestamp": "2026-04-22T22:26:25.248596"
+    },
+    {
+      "role": "assistant",
+      "content": "我喜欢学习新知识、解答问题，也热爱阅读、音乐和探索科技趋势。",
+      "timestamp": "2026-04-22T22:26:27.944059"
+    },
+    {
+      "role": "user",
+      "content": "介绍下你自己",
+      "timestamp": "2026-04-22T22:26:37.883009"
+    },
+    {
+      "role": "assistant",
+      "content": "我是DeepSeek AI助手，由深度求索公司创造。热爱学习与分享知识，乐于解答各类问题，陪伴用户探索世界。",
+      "timestamp": "2026-04-22T22:26:40.824036"
+    }
+  ],
+  "updated_at": "2026-04-22T22:26:40.824036"
+}

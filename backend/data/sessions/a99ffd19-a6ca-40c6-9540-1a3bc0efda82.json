@@ -1,0 +1,17 @@
+{
+  "session_id": "a99ffd19-a6ca-40c6-9540-1a3bc0efda82",
+  "title": "查询订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-22T23:27:14.820607"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-22T23:27:36.970926"
+    }
+  ],
+  "updated_at": "2026-04-22T23:27:58.022109"
+}

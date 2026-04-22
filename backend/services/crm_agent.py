@@ -137,6 +137,14 @@ class CRMState:
         if len(self.conversation_history) > self.max_history:
             self.conversation_history = self.conversation_history[-self.max_history:]
 
+    def get_conversation_history(self) -> List[Dict]:
+        """获取对话历史"""
+        return self.conversation_history
+
+    def set_conversation_history(self, history: List[Dict]):
+        """设置对话历史"""
+        self.conversation_history = history or []
+
     def get_conversation_context(self, include_last: int = None) -> str:
         """获取会话上下文"""
         if include_last is None:
@@ -205,25 +213,43 @@ class CRMAgent:
         # 知识库
         self.knowledge_base = get_knowledge_base()
         
-        # 系统提示词
-        self.system_prompt = """你是一个专业的电信业务客服助手，帮助用户办理套餐、查询订单等业务。
+# 系统提示词
+        self.system_prompt = """你是电信CRM营业受理系统的智能客服助手，专门帮助用户办理电信业务。
+
+你的职责范围：
+1. 产品查询：查询5G套餐、4G套餐、流量包等电信产品信息
+2. 账户服务：登录认证、账户信息查询、套餐变更
+3. 业务办理：订购套餐、办理增值业务、取消业务
+4. 订单查询：查询办理进度、订单状态
+5. 问题解答：解答电信业务相关问题
+
+禁止事项：
+1. 不要回答与电信业务无关的问题（如：大模型、技术实现、其他公司等）
+2. 不要透露使用的技术实现（如：大模型、API等）
+3. 不要进行与电信业务无关的闲聊
+4. 用户询问无关话题时，引导回业务主题
 
 业务规则：
 1. 产品查询和推荐不需要登录，任何用户都可以使用
 2. 订购产品、查询订单、支付需要用户先登录
-3. 用户说要"登录"时，引导用户输入手机号和密码（格式：手机号 密码）
+3. 用户说要"登录"时，引导用户输入：手机号码 空格 密码（格式：15300000574 Tianyuan@410）
 4. 用户选择订购时，检查是否已登录，未登录提示先登录
 5. 使用知识库中的产品信息和状态映射来格式化回复
-
-知识库信息:
-- 产品名称: 5G畅享128(128元,30GB流量), 5G畅享198(198元,60GB流量), 5G畅享298(298元,150GB流量)
-- 状态映射: pending_payment=待支付, paid=已支付, processing=处理中, completed=已完成, cancelled=已取消
 
 回答要求：
 1. 使用中文回复
 2. 保持友好、专业
 3. 如实传达工具返回的结果
 4. 根据用户已登录状态提供个性化服务
+5. 如果用户询问无关话题，引导回电信业务主题
+6. 回复简洁明了，不超过200字
+7. 遇到无法处理的问题，提示用户联系人工客服或换个方式描述
+
+用户登录后，你可以查询和展示：
+- 当前使用的套餐
+- 账户余额
+- 已订购的产品列表（含主销售品和附属销售品）
+- 订单列表
 """
 
     def get_session(self, session_id: str) -> CRMState:
@@ -336,7 +362,7 @@ class CRMAgent:
         if any(kw in message_lower for kw in need_auth_keywords) and not state.authenticated:
             return {
                 "type": "auth_required",
-                "message": "🔐 该操作需要先登录验证。\n\n请输入手机号和密码"
+                "message": "🔐 该操作需要先登录验证。\n\n请输入：手机号码 空格 密码"
             }
         
         # 使用 LLM 生成回复（含上下文记忆）
@@ -408,11 +434,11 @@ class CRMAgent:
                     else:
                         response_msg = "查询失败，请稍后重试。"
                 else:
-                    response_msg = "🔐 查询订单需要先登录。请输入手机号和密码"
+                    response_msg = "🔐 查询订单需要先登录。请输入：手机号码 空格 密码"
                     
             elif "订购" in message_lower:
                 if not state.authenticated:
-                    return {"type": "auth_required", "message": "🔐 订购需要先登录。请输入手机号和密码"}
+                    return {"type": "auth_required", "message": "🔐 订购需要先登录。请输入：手机号码 空格 密码"}
                 # 需要产品信息才能创建订单，这里返回指引
                 response_msg = "好的，您想订购产品。请告诉我想订购哪个产品？输入产品名称或说'推荐'获取推荐。"
                 
@@ -427,7 +453,7 @@ class CRMAgent:
                     response_msg = "您当前没有待支付订单。"
                     
             elif "login" in message_lower or "登录" in message_lower:
-                response_msg = "🔐 请输入手机号和密码完成登录（格式：手机号 密码）"
+                response_msg = "🔐 请输入：手机号码 空格 密码 完成登录"
                 state.set_topic("login")
                 
             elif "menu" in message_lower or any(kw in message_lower for kw in ["帮助", "功能", "其他"]):
@@ -441,14 +467,31 @@ class CRMAgent:
 请直接输入您想了解的内容："""
                 state.set_topic("menu")
             else:
-                # 使用 LLM 生成回复（含上下文）
-                # 将话题信息加入提示
-                topic_hint = f"\n[提示: 用户正在讨论'{state.last_topic}'话题，如果和之前话题相关，请结合之前的对话内容]" if state.last_topic else ""
+                # 检测是否是与电信业务无关的话题
+                irrelevant_keywords = [
+                    "大模型", "ai", "人工智能", "gpt", "chatgpt", 
+                    "天气", "新闻", "股票", "天气",
+                    "你是谁", "你会什么", "叫什么名字",
+                    "代码", "编程", "写程序", "开发",
+                    "其他公司", "竞争对手", "移动", "联通",
+                    "政治", "体育", "娱乐", "明星",
+                    "怎么做饭", "食谱", "旅游"
+                ]
                 
-                llm_prompt = f"""{context_prompt}{topic_hint}
+                is_irrelevant = any(kw in message_lower for kw in irrelevant_keywords)
+                
+                if is_irrelevant:
+                    response_msg = "抱歉，我是电信CRM营业受理客服，只能帮您办理电信业务。您可以询问：\n1. 5G套餐查询\n2. 账户登录\n3. 业务办理\n4. 订单查询\n\n请问有什么可以帮您？"
+                else:
+                    # 使用 LLM 生成回复（含上下文）
+                    topic_hint = f"\n[提示: 用户正在讨论'{state.last_topic}'话题，如果和之前话题相关，请结合之前的对话内容]" if state.last_topic else ""
+                    
+                    llm_prompt = f"""{context_prompt}{topic_hint}
 
-请用中文简洁回复，不超过80字。"""
-                response_msg = self.llm_service.chat(llm_prompt)
+请用中文简洁回复，不超过150字。专注于电信业务。
+如果用户询问与电信无关的话题，请引导回电信业务主题。"""
+                    response_msg = self.llm_service.chat(llm_prompt)
+                
                 state.set_topic(detected_topic or state.last_topic or "chat")
             
             # 记录助手回复
