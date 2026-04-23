@@ -11,6 +11,7 @@ from datetime import datetime
 
 import config
 from services.knowledge_base import get_knowledge_base, KnowledgeBase
+from services.i18n import t, format_message, format_offers_for_language, get_translations
 
 
 # ============ CRM API Client ============
@@ -56,11 +57,14 @@ class CRMAPIClient:
         return resp.json()
 
     def authenticate(self, phone: str, code: str = None, password: str = None, auth_type: str = "password") -> Dict:
-        auth_data = {"phone": phone, "auth_type": auth_type, "password": password}
+        auth_data = {"phone": phone, "auth_type": auth_type or "password", "password": password}
         try:
             resp = self._session.post(f"{self.base_url}/api/auth/login", json=auth_data, timeout=30)
-            return resp.json()
+            result = resp.json()
+            print(f"[APIClient] Login response: {result}")
+            return result
         except Exception as e:
+            print(f"[APIClient] Login error: {e}")
             return {"success": False, "message": str(e)}
 
     async def get_products(self, keyword: str = None, category: str = None) -> Dict:
@@ -79,6 +83,14 @@ class CRMAPIClient:
             "customer_id": customer_id, "product_id": product_id,
             "product_name": product_name, "price": price
         }, timeout=30)
+        return resp.json()
+
+    async def get_order_offers(self, customer_id: str) -> Dict:
+        resp = self._session.post(
+            f"{self.base_url}/CCInter/open/order/offers",
+            json={"custId": customer_id},
+            timeout=30
+        )
         return resp.json()
 
     async def get_orders(self, customer_id: str) -> Dict:
@@ -198,6 +210,19 @@ class CRMState:
             "last_topic": self.last_topic,
             "offers": self.offers
         }
+    
+    def from_dict(self, data: Dict):
+        """从字典恢复状态"""
+        self.authenticated = data.get("authenticated", False)
+        self.customer_id = data.get("customer_id")
+        self.customer_name = data.get("customer_name")
+        self.phone = data.get("phone")
+        self.account_balance = data.get("account_balance", 0.0)
+        self.current_package = data.get("current_package", "")
+        self.current_order = data.get("current_order")
+        self.conversation_history = data.get("conversation_history", [])
+        self.last_topic = data.get("last_topic")
+        self.offers = data.get("offers", [])
 
 
 # ============ LangChain Agent ============
@@ -232,9 +257,13 @@ class CRMAgent:
 业务规则：
 1. 产品查询和推荐不需要登录，任何用户都可以使用
 2. 订购产品、查询订单、支付需要用户先登录
-3. 用户说要"登录"时，引导用户输入：手机号码 空格 密码（格式：15300000574 Tianyuan@410）
+3. 用户说要"登录"时，引导用户输入：手机号码 空格 密码（如：13800138000 123456）
 4. 用户选择订购时，检查是否已登录，未登录提示先登录
-5. 使用知识库中的产品信息和状态映射来格式化回复
+5. 注意：目前只支持密码登录，暂不支持短信验证码
+6. 每个会话只能看到当前客户的对话，不能看到其他客户的对话
+7. 已登录客户只能查询自己名下的号码，不能查询其他人的号码
+8. 查询号码时必须验证号码归属，跨客户查询属于越权操作
+9. 未登录状态下查询号码，必须先引导用户登录认证
 
 回答要求：
 1. 使用中文回复
@@ -244,8 +273,21 @@ class CRMAgent:
 5. 如果用户询问无关话题，引导回电信业务主题
 6. 回复简洁明了，不超过200字
 7. 遇到无法处理的问题，提示用户联系人工客服或换个方式描述
+8. 号码归属验证失败时，提示"您没有权限查询该号码信息"
 
-用户登录后，你可以查询和展示：
+登录引导示例：
+当用户要求登录时，请使用以下格式引导：
+"好的，为您提供登录服务。\n\n请输入手机号码和密码进行登录，格式：手机号码 空格 密码（如：13800138000 123456）。登录后即可办理业务、查询套餐或订单。"
+
+未登录提示示例：
+当用户需要登录才能操作时（如查询订单），请使用以下格式：
+"您好！查询订单需要验证您的身份信息。为了保障您的账户安全，请先登录。\n\n登录格式：手机号码 空格 密码（如：13800138000 123456）"
+
+无权限提示示例：
+当客户查询非本人号码时，请使用以下格式：
+"您好！您没有权限查询该号码信息。如需帮助，请联系客服或前往营业厅。"
+
+用户登录后，你可以查询和展示��
 - 当前使用的套餐
 - 账户余额
 - 已订购的产品列表（含主销售品和附属销售品）
@@ -261,34 +303,83 @@ class CRMAgent:
         if session_id in self.sessions:
             del self.sessions[session_id]
 
-    def _format_offers(self, offers: List[Dict]) -> str:
-        """格式化订购产品信息"""
+    def _format_offers_v2(self, offers: List[Dict], language: str = "zh") -> str:
+        """格式化订购销售品信息_v2"""
+        trans = get_translations(language)
         if not offers:
-            return "暂无订购产品"
+            return trans["no_offers"]
 
         lines = []
         for offer in offers:
-            offer_name = offer.get("offerName", "N/A")
-            region_name = offer.get("regionName", "N/A")
-            eff_date = offer.get("effDate", "N/A")
-            exp_date = offer.get("expDate", "N/A")
+            offer_name = offer.get("offerName", trans["no_data"])
             sub_offers = offer.get("subOfferInst", [])
 
-            main_info = f"📦 {offer_name}\n   地域：{region_name}\n   生效日期：{eff_date[:10] if eff_date else 'N/A'}\n   失效日期：{exp_date[:10] if exp_date else 'N/A'}"
-            lines.append(main_info)
+            lines.append(f"📦 {offer_name}")
 
             if sub_offers:
                 for sub in sub_offers:
-                    sub_name = sub.get("offerName", "N/A")
-                    sub_eff = sub.get("effDate", "N/A")[:10] if sub.get("effDate") else "N/A"
-                    sub_exp = sub.get("expDate", "N/A")[:10] if sub.get("expDate") else "N/A"
-                    lines.append(f"   └─ 📱 {sub_name} (生效: {sub_eff}, 失效: {sub_exp})")
+                    sub_name = sub.get("offerName", trans["no_data"])
+                    billing_no = sub.get("billingNo", "")
+                    contract_cd = sub.get("contractCd", "")
+                    eff_date = sub.get("effDate", "")
+                    exp_date = sub.get("expDate", "")
+
+                    sub_eff = eff_date[:10] if eff_date and len(eff_date) >= 10 else ""
+                    sub_exp = exp_date[:10] if exp_date and len(exp_date) >= 10 else ""
+
+                    lines.append(f"   └─ 📱 {sub_name}")
+                    if billing_no:
+                        lines.append(f"      号码：{billing_no}")
+                    if contract_cd:
+                        lines.append(f"      合同号：{contract_cd}")
+                    lines.append(f"      {trans['effective_time']}：{sub_eff or trans['no_data']}")
+                    lines.append(f"      {trans['expiration_time']}：{sub_exp or trans['no_data']}")
+            else:
+                lines.append(f"   (无附属销售品)")
 
         return "\n\n".join(lines)
 
-    async def process_message(self, session_id: str, message: str) -> Dict[str, Any]:
-        """处理用户消息 - 使用 LangChain LLM，支持上下文记忆"""
+    def _format_order_offers(self, offers: List[Dict], language: str = "zh") -> str:
+        """格式化可订购销售品信息"""
+        trans = get_translations(language)
+        if not offers:
+            return trans["no_offers"]
+        
+        lines = []
+        for offer in offers:
+            name = offer.get("prodOfferName", "未知")
+            desc = offer.get("offerDescription", "")
+            fee_desc = offer.get("offerFeeDescription", "")
+            brand_id = offer.get("brandId", "")
+            eff_date = offer.get("effDate", "")
+            exp_date = offer.get("expDate", "")
+            
+            eff_str = eff_date[:10] if eff_date and len(eff_date) >= 10 else ""
+            exp_str = exp_date[:10] if exp_date and len(exp_date) >= 10 else ""
+            
+            brand_name = ""
+            if brand_id:
+                brand_map = {"1": "品牌A", "2": "品牌B", "3": "品牌C", "1,2": "品牌A/B"}
+                brand_name = brand_map.get(brand_id, f"品牌{brand_id}")
+            
+            lines.append(f"📋 {name}")
+            if desc:
+                lines.append(f"   描述：{desc}")
+            if fee_desc:
+                lines.append(f"   资费：{fee_desc}")
+            if brand_name:
+                lines.append(f"   品牌：{brand_name}")
+            lines.append(f"   生效时间：{eff_str or '暂无'}")
+            lines.append(f"   失效时间：{exp_str or '暂无'}")
+            lines.append("")
+        
+        return "\n".join(lines).strip()
+
+    async def process_message(self, session_id: str, message: str, language: str = "zh") -> Dict[str, Any]:
+        """处理用户消息 - 使用 LangChain LLM，支持上下文记忆和国际化"""
         state = self.get_session(session_id)
+        print(f"[Agent] Session {session_id} state: authenticated={state.authenticated}, customer_id={state.customer_id}")
+        trans = get_translations(language)
         
         # 检测并记录话题变化
         detected_topic = state.detect_topic(message)
@@ -316,29 +407,39 @@ class CRMAgent:
                 print(f"[Agent] Auth result: {auth_result}")
                 
                 if not auth_result.get("success"):
-                    error_msg = auth_result.get("message", "登录失败")
-                    return {"type": "auth_failed", "message": f"认证失败：{error_msg}"}
+                    error_msg = auth_result.get("message", trans["login_failed"])
+                    return {"type": "auth_failed", "message": f"{trans['login_failed']}：{error_msg}"}
                 
                 # 从登录结果中获取客户信息和已订购产品
                 customer = auth_result.get("customer", {})
                 cust_id = customer.get("customer_id", "")
                 cust_name = customer.get("name", "") or customer.get("full_name", "")
-                account_balance = customer.get("account_balance", 0.0)
-                current_package = customer.get("current_package", "未知套餐")
                 offers_list = customer.get("offers", [])
+                print(f"[Agent] Offers list: {offers_list}")
+                
+                # 查询三户信息
+                cust_result = self.api_client.query_customer(phone)
+                cust_info = {}
+                if cust_result.get("code") == "0" and cust_result.get("resultObj", {}).get("list"):
+                    cust_data = cust_result["resultObj"]["list"][0]
+                    cust_info = {
+                        "custId": cust_data.get("custId", ""),
+                        "custName": cust_data.get("custName", ""),
+                        "acctId": cust_data.get("acctId", ""),
+                        "subscriberId": cust_data.get("subscriberId", "")
+                    }
                 
                 # 设置会话状态
                 state.authenticated = True
                 state.customer_id = cust_id
                 state.customer_name = cust_name
                 state.phone = phone
-                state.account_balance = account_balance
-                state.current_package = current_package
                 state.set_offers(offers_list)
                 
-                offers_msg = self._format_offers(offers_list)
-                
-                success_msg = f"✅ 认证成功！\n\n尊敬的用户{cust_name}，您好！\n您当前使用的是：{current_package}\n账户余额：{state.account_balance}元\n\n📋 您的订购产品：\n{offers_msg if offers_msg != '暂无订购产品' else '暂无订购产品'}"
+                # 格式化销售品信息
+                offers_msg = format_offers_for_language(offers_list, language)
+
+                success_msg = f"✅ {trans['login_success']}！\n\n{trans['dear_user']}{cust_name}，{trans['hello']}！\n\n📋 {trans['your_products']}：\n{offers_msg if offers_msg else trans['no_offers']}"
 
                 state.set_topic("login")
                 state.add_message("assistant", success_msg)
@@ -350,159 +451,146 @@ class CRMAgent:
                         "customer_id": cust_id, 
                         "name": cust_name, 
                         "phone": phone,
-                        "account_balance": state.account_balance,
-                        "current_package": current_package
+                        "account_balance": customer.get("account_balance", 0),
+                        "current_package": customer.get("current_package", "")
                     }
-                }
+}
         
-        # 检查是否需要登录但未登录
-        message_lower = message.lower()
-        need_auth_keywords = ["订单", "订购", "办理", "支付", "购买", "我要这个"]
-        
-        if any(kw in message_lower for kw in need_auth_keywords) and not state.authenticated:
-            return {
-                "type": "auth_required",
-                "message": "🔐 该操作需要先登录验证。\n\n请输入：手机号码 空格 密码"
-            }
-        
-        # 使用 LLM 生成回复（含上下文记忆）
+        # 使用 LLM 判断用户意图并生成回复（含上下文记忆）
         try:
             # 构建上下文信息
             user_info = state.get_user_info()
             conversation_context = state.get_conversation_context()
             
-            # 构建完整的上下文提示
-            context_prompt = f"""当前会话上下文：
+            # 构建意图判断提示
+            intent_prompt = f"""你是电信CRM智能客服系统。你的任务是分析用户消息，判断用户的意图类型。
+
+用户当前消息: {message}
+登录状态: {'已登录' if state.authenticated else '未登录'}
+客户名称: {state.customer_name or '未登录'}
+客户ID: {state.customer_id or '无'}
+
+请判断用户意图类型（回复 order_query 或 offer_query 或 other）：
+1. order_query - 用户想要查询自己的订单、办理记录，如"查询订单"、"我的订单"、"订单进度"、"办理记录"等
+2. offer_query - 用户想要了解、咨询、查询可以订购的产品/套餐/offer，如"有什么套餐"、"我想订购"等
+3. other - 其他意图
+
+常见order_query表达：
+- "查询订单"、"我的订单"、"订单列表"
+- "订单进度"、"办理进度"、"订单状态"
+- "历史订单"、"最近办理了什么"
+
+常见offer_query表达：
+- "有什么套餐"、"有哪些产品"
+- "我想订购"、"想办理5G"
+- "推荐个套餐"
+
+请只回复 order_query 或 offer_query 或 other，不要有其他内容："""
+            
+            # 调用LLM判断意图
+            print(f"[Agent] Calling LLM for intent check...")
+            intent_decision = self.llm_service.invoke(intent_prompt)
+            intent_text = intent_decision.content.strip().lower() if hasattr(intent_decision, 'content') else str(intent_decision).lower()
+            
+            print(f"[Agent] Intent check for '{message}': '{intent_text}'")
+            print(f"[Agent] Authenticated: {state.authenticated}, CustomerID: {state.customer_id}")
+            
+            # 查询订单
+            if "order_query" in intent_text:
+                if state.authenticated and state.customer_id:
+                    print(f"[Agent] Querying orders for customer: {state.customer_id}")
+                    orders = await self.api_client.get_orders(state.customer_id)
+                    print(f"[Agent] Orders result: {orders}")
+                    if orders.get("success"):
+                        order_list = orders.get("orders", [])
+                        if order_list:
+                            order_msg = f"📋 {trans['your_orders']}：\n\n"
+                            for order in order_list:
+                                order_msg += f"📦 {order.get('product_name', trans['no_data'])}\n"
+                                order_msg += f"   {trans['status']}：{order.get('status', trans['no_data'])}\n"
+                                order_msg += f"   {trans['order_date']}：{order.get('create_time', trans['no_data'])}\n\n"
+                            return {"type": "order_list", "message": order_msg}
+                        else:
+                            return {"type": "text", "message": f"{trans['dear_user']}，{trans['no_data']}订单记录。"}
+                    else:
+                        return {"type": "text", "message": f"❌ {trans['error_occurred']}。"}
+                else:
+                    return {"type": "auth_required", "message": f"🔐 {trans['order_inquiry']}{trans['login_failed']}。\n\n请输入手机号码和密码进行登录，格式：手机号码 空格 密码（如：13800138000 123456）"}
+            
+            # 查询可订购销售品
+            should_query = False
+            if state.authenticated and state.customer_id:
+                if "offer_query" in intent_text:
+                    should_query = True
+                    print(f"[Agent] LLM confirmed offer_query, will query offers")
+            
+            if should_query:
+                print(f"[Agent] Querying order offers for customer: {state.customer_id}")
+                order_offers = await self.api_client.get_order_offers(state.customer_id)
+                print(f"[Agent] Order offers result: {order_offers}")
+                if order_offers.get("code") == "0":
+                    offer_list = order_offers.get("resultObj", {}).get("list", [])
+                    formatted_offers = self._format_order_offers(offer_list, language)
+                    return {
+                        "type": "order_offers",
+                        "message": f"📦 {trans['your_products']}：\n\n{formatted_offers}",
+                        "offers": offer_list
+                    }
+                else:
+                    return {
+                        "type": "text",
+                        "message": f"❌ {trans['no_offers']}。"
+                    }
+            
+# 构建完整的上下文提示，使用LLM生成回复
+            context_prompt = f"""你是电信CRM营业受理智能客服助手，为用户提供电信业务咨询和办理服务。
+
+【当前会话上下文】
 {conversation_context}
 
+【用户信息】
 {user_info}
 
-当前话题: {state.last_topic or '无'}
+【用户最新消息】
+{message}
 
-用户新消息: {message}
+【安全规则 - 重要！】
+1. 每个客户的会话独立，不能查看其他客户的对话
+2. 已登录客户只能查询自己名下的号码，不能查询其他人号码
+3. 查询号码前必须验证号码归属：检查号码是否属于当前登录客户的手机号列表
+4. 如果查询的号码不在客户本人名下，必须拒绝并提示："您好！您没有权限查询该号码信息。如需帮助，请联系客服或前往营业厅。"
+5. 未登录状态下查询号码，引导用户登录："您好！查询号码需要先登录验证。请输入手机号码和密码进行登录，格式：手机号码 空格 密码（如：13800138000 123456）"
 
-请根据上下文历史和当前话题回复用户，保持对话连贯性。如果用户切回之前的话题，需要结合历史对话内容回复。"""
-            
-            # 根据意图调用不同处理
-            response_msg = ""
-            response_type = "text"
-            
-            if "产品" in message_lower or "套餐" in message_lower or "5g" in message_lower or "4g" in message_lower:
-                result = await self.api_client.get_products(keyword="5G" if "5g" in message_lower else None)
-                if result.get("success"):
-                    products = result.get("products", [])
-                    # 使用知识库格式化产品信息
-                    formatted_products = self.knowledge_base.format_product(products)
-                    response_msg = "为您找到以下产品：\n\n" + "\n".join([
-                        f"📦 {p['name']}\n   价格：{p.get('price', 'N/A')}元/月\n   包含：{p.get('data_quota', 'N/A')}流量 + {p.get('voice_quota', 'N/A')}通话\n   适合：{p.get('description', 'N/A')}"
-                        for p in formatted_products
-                    ])
-                else:
-                    response_msg = "抱歉，未找到相关产品。"
-                    
-            elif "推荐" in message_lower:
-                if state.authenticated:
-                    result = await self.api_client.get_recommendations(state.customer_id)
-                    if result.get("success"):
-                        recs = result.get("recommendations", [])
-                        response_msg = "📊 为您推荐：\n\n" + "\n".join([
-                            f"📦 {p['name']} - {p['price']}元/月"
-                            for p in recs
-                        ])
-                    else:
-                        response_msg = "暂无推荐。"
-                else:
-                    result = await self.api_client.get_products(keyword="5G")
-                    if result.get("success"):
-                        products = result.get("products", [])[:3]
-                        response_msg = "📊 为您推荐热门产品：\n\n" + "\n".join([
-                            f"📦 {p['name']} - {p['price']}元/月"
-                            for p in products
-                        ])
-                        
-            elif "订单" in message_lower:
-                if state.authenticated:
-                    result = await self.api_client.get_orders(state.customer_id)
-                    if result.get("success"):
-                        orders = result.get("orders", [])
-                        # 使用知识库映射状态
-                        formatted_orders = self.knowledge_base.map_status(orders)
-                        response_msg = "📋 您的订单列表：\n\n" + "\n".join([
-                            f"📋 {o['product_name']}\n   状态：{o.get('status_text', o.get('status', 'N/A'))}"
-                            for o in formatted_orders
-                        ]) if orders else "您暂无订单记录。"
-                    else:
-                        response_msg = "查询失败，请稍后重试。"
-                else:
-                    response_msg = "🔐 查询订单需要先登录。请输入：手机号码 空格 密码"
-                    
-            elif "订购" in message_lower:
-                if not state.authenticated:
-                    return {"type": "auth_required", "message": "🔐 订购需要先登录。请输入：手机号码 空格 密码"}
-                # 需要产品信息才能创建订单，这里返回指引
-                response_msg = "好的，您想订购产品。请告诉我想订购哪个产品？输入产品名称或说'推荐'获取推荐。"
-                
-            elif "支付" in message_lower:
-                if state.authenticated and state.current_order:
-                    result = await self.api_client.process_payment(state.current_order["order_id"], state.customer_id)
-                    if result.get("success"):
-                        response_msg = "✅ 支付成功！"
-                    else:
-                        response_msg = f"支付失败：{result.get('message', '未知错误')}"
-                else:
-                    response_msg = "您当前没有待支付订单。"
-                    
-            elif "login" in message_lower or "登录" in message_lower:
-                response_msg = "🔐 请输入：手机号码 空格 密码 完成登录"
-                state.set_topic("login")
-                
-            elif "menu" in message_lower or any(kw in message_lower for kw in ["帮助", "功能", "其他"]):
-                response_msg = """📋 我的功能：
-1. 查询产品 - 了解各类套餐
-2. 推荐产品 - 获取个性化推荐
-3. 订购产品 - 办理新套餐
-4. 查询订单 - 查看办理记录
-5. 人工客服 - 转接人工服务
+请根据上下文历史和当前话题，用中文回复用户，保持对话连贯性。如果用户切回之前的话题，需要结合之前的对话内容回复。
 
-请直接输入您想了解的内容："""
-                state.set_topic("menu")
-            else:
-                # 检测是否是与电信业务无关的话题
-                irrelevant_keywords = [
-                    "大模型", "ai", "人工智能", "gpt", "chatgpt", 
-                    "天气", "新闻", "股票", "天气",
-                    "你是谁", "你会什么", "叫什么名字",
-                    "代码", "编程", "写程序", "开发",
-                    "其他公司", "竞争对手", "移动", "联通",
-                    "政治", "体育", "娱乐", "明星",
-                    "怎么做饭", "食谱", "旅游"
-                ]
-                
-                is_irrelevant = any(kw in message_lower for kw in irrelevant_keywords)
-                
-                if is_irrelevant:
-                    response_msg = "抱歉，我是电信CRM营业受理客服，只能帮您办理电信业务。您可以询问：\n1. 5G套餐查询\n2. 账户登录\n3. 业务办理\n4. 订单查询\n\n请问有什么可以帮您？"
-                else:
-                    # 使用 LLM 生成回复（含上下文）
-                    topic_hint = f"\n[提示: 用户正在讨论'{state.last_topic}'话题，如果和之前话题相关，请结合之前的对话内容]" if state.last_topic else ""
-                    
-                    llm_prompt = f"""{context_prompt}{topic_hint}
+回复要求：
+1. 简洁、专业、友好
+2. 优先解答用户的电信业务问题
+3. 如果用户询问功能可以说：可以帮您查询套餐、办理业务、查询订单等
+4. 如果用户没有明确意图，可以询问用户想了解什么服务
+5. 不超过150字"""
 
-请用中文简洁回复，不超过150字。专注于电信业务。
-如果用户询问与电信无关的话题，请引导回电信业务主题。"""
-                    response_msg = self.llm_service.chat(llm_prompt)
+            # 使用LLM生成回复
+            try:
+                response_msg = self.llm_service.chat(context_prompt)
+                print(f"[Agent] LLM response: {response_msg[:100]}...")
+                state.set_topic(state.last_topic or "chat")
                 
-                state.set_topic(detected_topic or state.last_topic or "chat")
-            
-            # 记录助手回复
-            state.add_message("assistant", response_msg)
-            
-            return {"type": response_type, "message": response_msg}
-            
+                # 记录助手回复
+                state.add_message("assistant", response_msg)
+                
+                return {"type": "text", "message": response_msg}
+            except Exception as llm_error:
+                print(f"[Agent] LLM error: {llm_error}")
+                # LLM失败时，不返回错误，而是尝试其他方式
+                return {"type": "text", "message": "抱歉，服务暂时不可用。请稍后重试。"}
+
         except Exception as e:
-            print(f"Agent error: {e}")
-            # 出错时回退
-            return await self._fallback_handle(message, state)
+            import traceback
+            print(f"[Agent] Error: {e}")
+            print(f"[Agent] Traceback: {traceback.format_exc()}")
+            # 不再进入fallback，直接返回友好提示
+            return {"type": "text", "message": "抱歉，处理您的请求时出现错误，请稍后重试。"}
 
     async def _fallback_handle(self, message: str, state: CRMState) -> Dict:
         """出错时的回退处理"""

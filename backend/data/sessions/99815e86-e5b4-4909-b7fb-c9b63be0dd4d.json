@@ -1,0 +1,40 @@
+{
+  "session_id": "99815e86-e5b4-4909-b7fb-c9b63be0dd4d",
+  "title": "我要查询定单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "我要查询定单",
+      "timestamp": "2026-04-23T14:57:57.871635"
+    },
+    {
+      "role": "assistant",
+      "content": "您好！查询订单需要先登录验证身份。请输入手机号码和密码进行登录，格式：手机号码 空格 密码（例如：13800138000 123456）。登录后即可为您查询名下号码的订单信息。",
+      "timestamp": "2026-04-23T14:58:03.142410"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "我要查询定单",
+        "timestamp": "2026-04-23T14:57:57.871635"
+      },
+      {
+        "role": "assistant",
+        "content": "您好！查询订单需要先登录验证身份。请输入手机号码和密码进行登录，格式：手机号码 空格 密码（例如：13800138000 123456）。登录后即可为您查询名下号码的订单信息。",
+        "timestamp": "2026-04-23T14:58:03.142410"
+      }
+    ],
+    "last_topic": "order",
+    "offers": []
+  },
+  "updated_at": "2026-04-23T14:58:03.142410"
+}

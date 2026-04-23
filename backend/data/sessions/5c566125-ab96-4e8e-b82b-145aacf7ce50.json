@@ -1,0 +1,30 @@
+{
+  "session_id": "5c566125-ab96-4e8e-b82b-145aacf7ce50",
+  "title": "你号",
+  "messages": [
+    {
+      "role": "user",
+      "content": "你号",
+      "timestamp": "2026-04-23T14:08:17.881042"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "你号",
+        "timestamp": "2026-04-23T14:08:17.881042"
+      }
+    ],
+    "last_topic": null,
+    "offers": []
+  },
+  "updated_at": "2026-04-23T14:08:17.881042"
+}

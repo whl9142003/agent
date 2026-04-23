@@ -1,27 +1,24 @@
 """
-MiniMax LLM Service - Chat兼容版本
-支持 LangChain 调用（作为 chat model）
+DeepSeek LLM Service
+使用 DeepSeek API 进行对话
 """
 import os
 import requests
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any
 
 
-class MiniMaxChatModel:
-    """MiniMax 对话模型 - LangChain ChatModel 兼容版本"""
+class DeepSeekChatModel:
+    """DeepSeek 对话模型"""
 
-    def __init__(self, api_key: str = "sk-cp-IESAM4xsZvAn_S0ZqbZF2LRX19gDH1_D5F_H14nAFkVlSVh1wYQoGuqa_UhHfvQPHklqgQEluJbiyn_x_9i7KFT0HaWJFRNoQ6SCum1_QMqIkhxzOnQ2TY8", model_name: str = "MiniMax-M2.1"):
-        self.api_key = api_key or os.environ.get("MINIMAX_API_KEY", "")
+    def __init__(self, api_key: str = None, model_name: str = "deepseek-chat"):
+        self.api_key = api_key or os.environ.get("DEEPSEEK_API_KEY", "sk-2bc0703468734baba05e5f3dd2162aa7")
         self.model_name = model_name
-        self.api_base = "https://api.minimax.chat/v1"
+        self.api_base = "https://api.deepseek.com/v1"
         self.temperature = 0.7
         self.max_tokens = 2048
 
         if not self.api_key:
-            print("警告: 未设置MINIMAX_API_KEY环境变量")
-        
-        # 设置为 LangChain 兼容的 llm 属性
-        self.llm = self  # 自身作为 LangChain LLM
+            print("警告: 未设置DEEPSEEK_API_KEY环境变量")
 
     def __call__(self, messages: List[Dict[str, str]]) -> str:
         """LangChain ChatModel 接口"""
@@ -35,10 +32,10 @@ class MiniMaxChatModel:
         messages.append({"role": "user", "content": prompt})
         return self._call_api(messages)
 
-def chat_with_history(self, messages: List[Dict[str, str]]) -> str:
+    def chat_with_history(self, messages: List[Dict[str, str]]) -> str:
         """多轮对话"""
         return self._call_api(messages)
-    
+
     def invoke(self, prompt: str) -> Any:
         """LangChain 兼容的 invoke 方法"""
         class InvokeResult:
@@ -46,9 +43,9 @@ def chat_with_history(self, messages: List[Dict[str, str]]) -> str:
                 self.content = content
         result = self.chat(prompt)
         return InvokeResult(result)
-    
+
     def _call_api(self, messages: List[Dict]) -> str:
-        """调用MiniMax API"""
+        """调用DeepSeek API"""
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -63,7 +60,7 @@ def chat_with_history(self, messages: List[Dict[str, str]]) -> str:
 
         try:
             response = requests.post(
-                f"{self.api_base}/text/chatcompletion_v2",
+                f"{self.api_base}/chat/completions",
                 headers=headers,
                 json=payload,
                 timeout=60
@@ -90,6 +87,6 @@ def chat_with_history(self, messages: List[Dict[str, str]]) -> str:
         return self
 
 
-def create_llm(api_key: str = None, model: str = "MiniMax-M2.1") -> MiniMaxChatModel:
-    """创建LLM实例的工厂函数"""
-    return MiniMaxChatModel(api_key=api_key, model_name=model)
+def create_deepseek_llm(api_key: str = None, model: str = "deepseek-chat") -> DeepSeekChatModel:
+    """创建DeepSeek LLM实例的工厂函数"""
+    return DeepSeekChatModel(api_key=api_key, model_name=model)

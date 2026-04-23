@@ -1,0 +1,27 @@
+{
+  "session_id": "f87aa8a2-0b1b-4b80-a488-e9b47bcebdde",
+  "title": "查询订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T08:33:24.067344"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-23T08:33:45.688071"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-23T08:35:27.731258"
+    },
+    {
+      "role": "assistant",
+      "content": "✅ 认证成功！\n\n尊敬的用户mola81，您好！\n您当前使用的是：CUG GROUP Offer\n账户余额：0.0元\n\n📋 您的订购产品：\n📦 CUG GROUP Offer\n   地域：Maroc\n   生效日期：2026-04-22\n   失效日期：2027-04-22\n\n📦 5G Smart Offer\n   地域：Maroc\n   生效日期：2026-04-21\n   失效日期：2027-04-21\n\n📦 5G Smart Offer\n   地域：Maroc\n   生效日期：2026-04-20\n   失效日期：2027-04-20\n\n📦 5G Smart Offer\n   地域：Maroc\n   生效日期：2026-04-20\n   失效日期：2027-04-20\n\n📦 Mobile Offer\n   地域：Maroc\n   生效日期：2026-04-20\n   失效日期：2027-04-20\n\n📦 CPE GOODS Offer\n   地域：Maroc\n   生效日期：N/A\n   失效日期：N/A\n\n📦 CPE GOODS Offer\n   地域：Maroc\n   生效日期：N/A\n   失效日期：N/A\n\n📦 CPE GOODS Offer\n   地域：Maroc\n   生效日期：N/A\n   失效日期：N/A\n\n📦 5G Smart Offer\n   地域：Maroc\n   生效日期：2026-04-18\n   失效日期：2027-04-18\n\n📦 5G Smart Offer\n   地域：Maroc\n   生效日期：2026-04-18\n   失效日期：2027-04-18",
+      "timestamp": "2026-04-23T08:35:28.352404"
+    }
+  ],
+  "updated_at": "2026-04-23T08:35:28.352404"
+}

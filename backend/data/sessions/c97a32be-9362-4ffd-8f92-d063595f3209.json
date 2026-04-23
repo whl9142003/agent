@@ -1,0 +1,12 @@
+{
+  "session_id": "c97a32be-9362-4ffd-8f92-d063595f3209",
+  "title": "查询订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T09:55:30.857281"
+    }
+  ],
+  "updated_at": "2026-04-23T09:55:30.857281"
+}

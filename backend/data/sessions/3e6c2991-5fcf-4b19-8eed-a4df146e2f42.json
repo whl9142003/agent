@@ -1,0 +1,22 @@
+{
+  "session_id": "3e6c2991-5fcf-4b19-8eed-a4df146e2f42",
+  "title": "查询订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T10:42:12.170674"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-23T10:42:19.483049"
+    },
+    {
+      "role": "assistant",
+      "content": "✅ 认证成功！\n\n尊敬的用户mola81，您好！\n\n📋 您的订购销售品：\n暂无订购销售品",
+      "timestamp": "2026-04-23T10:42:20.409668"
+    }
+  ],
+  "updated_at": "2026-04-23T10:42:20.409668"
+}

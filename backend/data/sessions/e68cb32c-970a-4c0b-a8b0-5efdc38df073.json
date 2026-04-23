@@ -1,0 +1,90 @@
+{
+  "session_id": "e68cb32c-970a-4c0b-a8b0-5efdc38df073",
+  "title": "查询订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T14:21:00.355413"
+    },
+    {
+      "role": "user",
+      "content": "你号",
+      "timestamp": "2026-04-23T14:54:22.318100"
+    },
+    {
+      "role": "assistant",
+      "content": "您好！我是电信客服助手，可以帮您查询套餐、办理业务、查询订单等。  \n\n当前您还未登录，查询订单需要先验证身份。请您输入手机号码和密码进行登录，格式：手机号码 空格 密码（例如：13800138000 123456）。登录后即可为您查询订单详情。",
+      "timestamp": "2026-04-23T14:54:29.087654"
+    },
+    {
+      "role": "user",
+      "content": "查询定单",
+      "timestamp": "2026-04-23T15:05:16.138388"
+    },
+    {
+      "role": "user",
+      "content": "查询定单",
+      "timestamp": "2026-04-23T16:11:38.847414"
+    },
+    {
+      "role": "user",
+      "content": "查询定单",
+      "timestamp": "2026-04-23T16:23:06.000739"
+    },
+    {
+      "role": "user",
+      "content": "查询定单",
+      "timestamp": "2026-04-23T16:23:40.553195"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "查询订单",
+        "timestamp": "2026-04-23T14:21:00.355413"
+      },
+      {
+        "role": "user",
+        "content": "你号",
+        "timestamp": "2026-04-23T14:54:22.318100"
+      },
+      {
+        "role": "assistant",
+        "content": "您好！我是电信客服助手，可以帮您查询套餐、办理业务、查询订单等。  \n\n当前您还未登录，查询订单需要先验证身份。请您输入手机号码和密码进行登录，格式：手机号码 空格 密码（例如：13800138000 123456）。登录后即可为您查询订单详情。",
+        "timestamp": "2026-04-23T14:54:29.087654"
+      },
+      {
+        "role": "user",
+        "content": "查询定单",
+        "timestamp": "2026-04-23T15:05:16.138388"
+      },
+      {
+        "role": "user",
+        "content": "查询定单",
+        "timestamp": "2026-04-23T16:11:38.847414"
+      },
+      {
+        "role": "user",
+        "content": "查询定单",
+        "timestamp": "2026-04-23T16:23:06.000739"
+      },
+      {
+        "role": "user",
+        "content": "查询定单",
+        "timestamp": "2026-04-23T16:23:40.553195"
+      }
+    ],
+    "last_topic": "order",
+    "offers": []
+  },
+  "updated_at": "2026-04-23T16:23:42.456604"
+}

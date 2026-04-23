@@ -122,7 +122,32 @@ MOCK_PRODUCTS = [
 ]
 
 # 订单数据
-MOCK_ORDERS = {}
+MOCK_ORDERS = {
+    "ORD20260423001": {
+        "order_id": "ORD20260423001",
+        "customer_id": "120000",
+        "product_name": "5G Smart Offer",
+        "status": "已完成",
+        "create_time": "2026-04-23 10:30:00",
+        "amount": 99.00
+    },
+    "ORD20260422002": {
+        "order_id": "ORD20260422002",
+        "customer_id": "120000",
+        "product_name": "CUG GROUP Offer",
+        "status": "已完成",
+        "create_time": "2026-04-22 14:20:00",
+        "amount": 50.00
+    },
+    "ORD20260421003": {
+        "order_id": "ORD20260421003",
+        "customer_id": "120000",
+        "product_name": "云主机服务器套餐",
+        "status": "处理中",
+        "create_time": "2026-04-21 09:15:00",
+        "amount": 200.00
+    }
+}
 
 # ============ 认证接口 ============
 
@@ -197,40 +222,45 @@ async def call_crm_login(phone: str, password: str, serial_number: str = None) -
             # Step 3: 调用 /CCInter/open/cust/offers 获取已订购产品
             if cust_id:
                 print(f"[CRM Login] Step 3: Calling /CCInter/open/cust/offers")
-                offers_response = await client.post(
-                    f"{CRM_API_URL}/CCInter/open/cust/offers",
-                    json={"custId": cust_id},
-                    headers=headers
-                )
-                offers_result = offers_response.json()
-                print(f"[CRM Login] Step 3 Response: {offers_result}")
-                
-                if offers_result.get("code") == "0":
-                    offers_list = offers_result.get("resultObj", {}).get("list", [])
-                    if offers_list:
-                        current_package = offers_list[0].get("offerName", "未知套餐")
-                        
-                        # Step 4: 对每个主销售品调用 /CCInter/open/cust/sub/offers 获取附属销售品
-                        for offer in offers_list:
-                            offer_inst_id = offer.get("offerInstId", "")
-                            if offer_inst_id:
-                                print(f"[CRM Login] Step 4: Calling /CCInter/open/cust/sub/offers")
-                                try:
-                                    sub_response = await client.post(
-                                        f"{CRM_API_URL}/CCInter/open/cust/sub/offers",
-                                        json={"offerInstId": offer_inst_id},
-                                        headers=headers
-                                    )
-                                    sub_result = sub_response.json()
-                                    print(f"[CRM Login] Step 4 Response: {sub_result}")
-                                    
-                                    if sub_result.get("code") == "0":
-                                        offer["subOfferInst"] = sub_result.get("resultObj", {}).get("list", [])
-                                    else:
-                                        offer["subOfferInst"] = []
-                                except Exception as e:
-                                    print(f"[CRM Login] Step 4 Error: {e}")
-                                    offer["subOfferInst"] = []
+                try:
+                    offers_response = await client.post(
+                        f"{CRM_API_URL}/CCInter/open/cust/offers",
+                        json={"custId": cust_id},
+                        headers=headers
+                    )
+                    offers_result = offers_response.json()
+                    print(f"[CRM Login] Step 3 Response: {offers_result}")
+                    
+                    if offers_result.get("code") == "0":
+                        offers_list = offers_result.get("resultObj", {}).get("list", [])
+                        if offers_list:
+                            current_package = offers_list[0].get("offerName", "未知套餐")
+                            
+                            # 如果CRM返回的subOfferInst为空，则调用Step 4获取
+                            for offer in offers_list:
+                                existing_sub = offer.get("subOfferInst", [])
+                                if not existing_sub:
+                                    offer_inst_id = offer.get("offerInstId", "")
+                                    if offer_inst_id:
+                                        print(f"[CRM Login] Step 4: Calling /CCInter/open/cust/sub/offers")
+                                        try:
+                                            sub_response = await client.post(
+                                                f"{CRM_API_URL}/CCInter/open/cust/sub/offers",
+                                                json={"offerInstId": offer_inst_id},
+                                                headers=headers
+                                            )
+                                            sub_result = sub_response.json()
+                                            print(f"[CRM Login] Step 4 Response: {sub_result}")
+                                            
+                                            if sub_result.get("code") == "0":
+                                                offer["subOfferInst"] = sub_result.get("resultObj", {}).get("list", [])
+                                            else:
+                                                offer["subOfferInst"] = []
+                                        except Exception as e:
+                                            print(f"[CRM Login] Step 4 Error: {e}")
+                                            offer["subOfferInst"] = []
+                except Exception as e:
+                    print(f"[CRM Login] Step 3 Error: {e}")
             
             customer = {
                 "customer_id": cust_id,
@@ -345,20 +375,60 @@ async def login(request: AuthRequest):
 # ============ 产品接口 ============
 
 @app.get("/api/products")
-async def get_products(keyword: Optional[str] = None, category: Optional[str] = None):
-    """获取产品列表"""
-    products = MOCK_PRODUCTS.copy()
-
-    if keyword:
-        products = [p for p in products if keyword.lower() in p["name"].lower()]
-    if category:
-        products = [p for p in products if p["category"] == category]
-
-    return {
-        "success": True,
-        "products": products,
-        "total": len(products)
-    }
+async def get_products(keyword: Optional[str] = None, category: Optional[str] = None, custId: Optional[str] = None):
+    """获取产品列表 - 调用真实CRM接口"""
+    import httpx
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+            headers = {
+                "Content-Type": "application/json",
+                "Referer": f"{CRM_API_URL}/ecare/login.view?lang=zh_CN"
+            }
+            
+            cust_id = custId or "120000"
+            response = await client.post(
+                f"{CRM_API_URL}/CCInter/open/order/offers",
+                json={"custId": cust_id},
+                headers=headers
+            )
+            result = response.json()
+            
+            if result.get("code") == "0":
+                offer_list = result.get("resultObj", {}).get("list", [])
+                products = []
+                for offer in offer_list:
+                    name = offer.get("prodOfferName", "未知")
+                    if keyword and keyword.lower() not in name.lower():
+                        continue
+                    products.append({
+                        "product_id": str(offer.get("prodOfferId", "")),
+                        "name": name,
+                        "price": offer.get("offerFeeDescription", "标准资费"),
+                        "description": offer.get("offerDescription", ""),
+                        "category": category or "offer",
+                        "eff_date": offer.get("effDate", ""),
+                        "exp_date": offer.get("expDate", "")
+                    })
+                
+                return {
+                    "success": True,
+                    "products": products,
+                    "total": len(products)
+                }
+            else:
+                return {
+                    "success": True,
+                    "products": [],
+                    "message": result.get("message", "查询失败")
+                }
+    except Exception as e:
+        print(f"[Mock] get_products error: {e}")
+        return {
+            "success": True,
+            "products": [],
+            "message": str(e)
+        }
 
 @app.get("/api/products/{product_id}")
 async def get_product_detail(product_id: str):
@@ -375,36 +445,56 @@ async def get_product_detail(product_id: str):
 
 @app.get("/api/products/recommend/{customer_id}")
 async def get_product_recommend(customer_id: str):
-    """获取个性化推荐"""
-    # 模拟基于客户信息的推荐
-    customer = None
-    for c in MOCK_CUSTOMERS.values():
-        if c["customer_id"] == customer_id:
-            customer = c
-            break
-
-    if not customer:
+    """获取个性化推荐 - 调用真实CRM接口"""
+    import httpx
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+            headers = {
+                "Content-Type": "application/json",
+                "Referer": f"{CRM_API_URL}/ecare/login.view?lang=zh_CN"
+            }
+            
+            response = await client.post(
+                f"{CRM_API_URL}/CCInter/open/order/offers",
+                json={"custId": customer_id},
+                headers=headers
+            )
+            result = response.json()
+            
+            if result.get("code") == "0":
+                offer_list = result.get("resultObj", {}).get("list", [])
+                recommendations = []
+                for offer in offer_list:
+                    recommendations.append({
+                        "product_id": str(offer.get("prodOfferId", "")),
+                        "name": offer.get("prodOfferName", "未知"),
+                        "price": offer.get("offerFeeDescription", "标准资费"),
+                        "description": offer.get("offerDescription", ""),
+                        "category": "offer"
+                    })
+                
+                return {
+                    "success": True,
+                    "recommendations": recommendations[:6],
+                    "customer_usage": {
+                        "avg_data": "约25GB/月",
+                        "avg_voice": "约400分钟/月"
+                    }
+                }
+            else:
+                return {
+                    "success": True,
+                    "recommendations": [],
+                    "message": result.get("message", "查询失败")
+                }
+    except Exception as e:
+        print(f"[Mock] get_product_recommend error: {e}")
         return {
             "success": True,
-            "recommendations": MOCK_PRODUCTS[:3]
+            "recommendations": [],
+            "message": str(e)
         }
-
-    # 根据客户当前套餐推荐
-    recommendations = []
-    for product in MOCK_PRODUCTS:
-        if product["applicable"]:
-            recommendations.append(product)
-            if len(recommendations) >= 3:
-                break
-
-    return {
-        "success": True,
-        "recommendations": recommendations,
-        "customer_usage": {
-            "avg_data": "约25GB/月",
-            "avg_voice": "约400分钟/月"
-        }
-    }
 
 # ============ 订单接口 ============
 
@@ -610,6 +700,8 @@ async def query_customer_offers(request: dict):
                 {
                     "offerInstId": f"SO001-{cust_id}",
                     "offerName": "来电显示",
+                    "billingNo": "13800000001",
+                    "contractCd": "CON20240101001",
                     "effDate": "2024-01-01T00:00:00",
                     "expDate": "2099-12-31T23:59:59",
                     "status": "生效"
@@ -617,6 +709,8 @@ async def query_customer_offers(request: dict):
                 {
                     "offerInstId": f"SO002-{cust_id}",
                     "offerName": "短信包",
+                    "billingNo": "13800000002",
+                    "contractCd": "CON20240101002",
                     "effDate": "2024-01-01T00:00:00",
                     "expDate": "2099-12-31T23:59:59",
                     "status": "生效"
@@ -655,6 +749,106 @@ async def query_sub_offers(request: dict):
         "message": "成功",
         "resultObj": {
             "list": []
+        }
+    }
+
+
+@app.post("/CCInter/open/order/offers")
+async def query_order_offers(request: dict):
+    """可订购销售品查询"""
+    cust_id = request.get("custId", "")
+    print(f"[Mock] query_order_offers called with custId: {cust_id}")
+    
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "pageNum": 1,
+            "pageSize": 6,
+            "total": 6,
+            "pages": 1,
+            "isFirstPage": True,
+            "isLastPage": True,
+            "list": [
+                {
+                    "prodOfferId": 600000004,
+                    "offerVersionId": 3,
+                    "prodOfferName": "5G Smart Offer",
+                    "state": "003",
+                    "effDate": "2022-11-11 00:00:00",
+                    "expDate": "2032-11-11 00:00:00",
+                    "offerNbr": "6000000045G",
+                    "offerDescription": "M, 5G Smart Offer,Bundled Offer",
+                    "offerFeeDescription": "Discount Fee",
+                    "brandId": "1,2",
+                    "automaticRenewal": "2"
+                },
+                {
+                    "prodOfferId": 600003301,
+                    "offerVersionId": 3,
+                    "prodOfferName": "CUG GROUP Offer",
+                    "state": "003",
+                    "effDate": "2022-11-11 00:00:00",
+                    "expDate": "2032-11-11 00:00:00",
+                    "offerNbr": "100003301CUG",
+                    "offerDescription": "M, CUG Group,Single Offer",
+                    "offerFeeDescription": "Standard Fee",
+                    "brandId": "2",
+                    "automaticRenewal": "2"
+                },
+                {
+                    "prodOfferId": 600000003,
+                    "offerVersionId": 3,
+                    "prodOfferName": "Mobile Offer",
+                    "state": "003",
+                    "effDate": "2022-11-11 00:00:00",
+                    "expDate": "2032-11-11 00:00:00",
+                    "offerNbr": "600000003MOBILE",
+                    "offerDescription": "M, Mobile,Single Offer",
+                    "offerFeeDescription": "Discount Fee",
+                    "brandId": "1",
+                    "automaticRenewal": "2"
+                },
+                {
+                    "prodOfferId": 700000053,
+                    "offerVersionId": 3,
+                    "prodOfferName": "云主机服务器套餐",
+                    "state": "003",
+                    "effDate": "2022-11-11 00:00:00",
+                    "expDate": "2032-11-11 00:00:00",
+                    "offerNbr": "C3000120",
+                    "offerDescription": "云主机服务器资源套餐",
+                    "offerFeeDescription": "标准资费",
+                    "brandId": "3",
+                    "automaticRenewal": "1"
+                },
+                {
+                    "prodOfferId": 760001252,
+                    "offerVersionId": 3,
+                    "prodOfferName": "云主机类服务-B套餐",
+                    "state": "003",
+                    "effDate": "2022-11-11 00:00:00",
+                    "expDate": "2032-11-11 00:00:00",
+                    "offerNbr": "C3000120",
+                    "offerDescription": "云主机类服务-B资源套餐",
+                    "offerFeeDescription": "标准资费",
+                    "brandId": "3",
+                    "automaticRenewal": "1"
+                },
+                {
+                    "prodOfferId": 700000650,
+                    "offerVersionId": 3,
+                    "prodOfferName": "安全服务套餐",
+                    "state": "003",
+                    "effDate": "2022-11-11 00:00:00",
+                    "expDate": "2032-11-11 00:00:00",
+                    "offerNbr": "C3000120",
+                    "offerDescription": "云主机服务器资源套餐",
+                    "offerFeeDescription": "标准资费",
+                    "brandId": "3",
+                    "automaticRenewal": "1"
+                }
+            ]
         }
     }
 

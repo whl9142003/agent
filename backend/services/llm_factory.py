@@ -4,7 +4,7 @@ LLM 工厂 - 支持多模型厂商
 """
 import os
 import requests
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import config
 
 
@@ -28,6 +28,14 @@ class BaseLLM:
     
     def chat_with_history(self, messages: List[Dict]) -> str:
         raise NotImplementedError
+    
+    def invoke(self, prompt: str) -> Any:
+        """LangChain 兼容的 invoke 方法"""
+        class InvokeResult:
+            def __init__(self, content):
+                self.content = content
+        result = self.chat(prompt)
+        return InvokeResult(result)
     
     @property
     def llm(self):

@@ -401,42 +401,46 @@
             align-items: flex-end;
         }
 
-        .message-content {
-            max-width: 80%;
-            padding: 14px 18px;
+        .message.user .message-wrap {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        div.message-content {
+            max-width: 85%;
+            padding: 10px 14px;
             font-size: 15px;
-            line-height: 1.6;
+            line-height: 1.4;
             white-space: pre-wrap;
             word-break: break-word;
-        }
-
-        .message.bot .message-content {
-            background: #F5F5F5;
-            color: #333;
-            border-radius: 12px;
-            border-bottom-left-radius: 4px;
+            box-sizing: border-box;
             display: inline-block;
-            min-width: 100px;
         }
 
-.message.user .message-content {
+        .message-content.loading {
+            padding: 10px 14px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .message.user div.message-content {
             background: #95EC69;
-            color: #333;
-            border-radius: 12px;
-            border-bottom-right-radius: 4px;
-            display: inline;
+            color: #1a1a1a;
+            border-radius: 16px;
+            border: 1px solid #85D961;
         }
 
         .message-wrap {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             max-width: 100%;
+            flex-direction: row;
         }
 
         .message.user .message-wrap {
             display: flex;
             align-items: flex-end;
-            max-width: 100%;
+            flex-direction: row-reverse;
         }
 
         .loading {
@@ -446,6 +450,7 @@
             color: var(--input-gray);
             font-size: 13px;
             white-space: nowrap;
+            padding: 8px 12px;
         }
 
         .avatar {
@@ -472,17 +477,33 @@
         }
 
 .message.bot .message-wrap {
-            display: inline-flex;
-            align-items: center;
+            display: flex;
+            align-items: flex-start;
         }
 
         .message.user .message-wrap {
             display: flex;
             align-items: flex-end;
-            max-width: 100%;
         }
 
-        /* 快捷操作 */
+        .message.bot .avatar {
+            background: #E8E8E8;
+            color: #666;
+            margin-right: 12px;
+            align-self: flex-start;
+        }
+
+        .message.user .avatar {
+            background: var(--primary-red);
+            color: white;
+            margin-left: 12px;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
         .quick-actions {
             display: flex;
             gap: 12px;
@@ -679,7 +700,7 @@
                 <span>➕</span>
                 <span>新建对话</span>
             </button>
-            
+
             <div class="sidebar-menu">
                 <div class="menu-section-title">最近对话</div>
                 <div class="session-list" id="sessionList">
@@ -710,6 +731,11 @@
                 </div>
                 
                 <div class="header-right">
+                    <select id="languageSelect" onchange="changeLanguage()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--light-gray); font-size: 13px; cursor: pointer;">
+                        <option value="zh">中文</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                    </select>
                 </div>
             </div>
             
@@ -743,9 +769,66 @@
     </div>
 
     <script>
+        let currentLanguage = 'zh';
+
+        const I18N = {
+            zh: {
+                welcomeTitle: "营业受理机器人",
+                welcomeDesc: "我可以为您提供以下服务：产品查询、订单办理、账户查询、人工客服等",
+                loginHint: "请输入：手机号码 空格 密码 完成登录",
+                action5g: "5G套餐",
+                actionRecommend: "推荐",
+                actionOrder: "订单",
+                actionHuman: "人工客服",
+                newChat: "新建对话",
+                recentChats: "最近对话",
+                noChats: "暂无会话记录",
+                inputPlaceholder: "输入消息...",
+                send: "发送",
+                currentSession: "当前会话",
+                newConversation: "新对话"
+            },
+            en: {
+                welcomeTitle: "Business Service Robot",
+                welcomeDesc: "I can provide you with: Product Inquiry, Order Processing, Account Query, Live Support",
+                loginHint: "Please enter: Phone Number Space Password to login",
+                action5g: "5G Plan",
+                actionRecommend: "Recommend",
+                actionOrder: "Orders",
+                actionHuman: "Live Support",
+                newChat: "New Chat",
+                recentChats: "Recent Chats",
+                noChats: "No chat history",
+                inputPlaceholder: "Type a message...",
+                send: "Send",
+                currentSession: "Current Session",
+                newConversation: "New Conversation"
+            },
+            fr: {
+                welcomeTitle: "Robot de Service Commercial",
+                welcomeDesc: "Je peux vous提供服务: Consultation de Produits, Traitement de Commandes, Requêtes de Compte, Support en Direct",
+                loginHint: "Veuillez entrer: Numéro de Téléphone Espace Mot de Passe pour vous connecter",
+                action5g: "Forfait 5G",
+                actionRecommend: "Recommander",
+                actionOrder: "Commandes",
+                actionHuman: "Support en Direct",
+                newChat: "Nouveau Chat",
+                recentChats: "Conversations Récentes",
+                noChats: "Aucun historique de chat",
+                inputPlaceholder: "Tapez un message...",
+                send: "Envoyer",
+                currentSession: "Session Actuelle",
+                newConversation: "Nouvelle Conversation"
+            }
+        };
+
+        function t(key) {
+            return I18N[currentLanguage]?.[key] || I18N.zh[key] || key;
+        }
+
         let sessionId = '';
         let sessionList = [];
-        let currentSessionTitle = '新对话';
+        let currentSessionTitle = I18N.zh.newConversation;
         let isAuthenticated = false;
         let sidebarCollapsed = false;
 
@@ -784,14 +867,14 @@
             if (!sessionListEl) return;
 
             if (sessionList.length === 0) {
-                sessionListEl.innerHTML = '<div class="session-item" style="color: #999; cursor: default;">暂无会话记录</div>';
+                sessionListEl.innerHTML = `<div class="session-item" style="color: #999; cursor: default;">${t('noChats')}</div>`;
                 return;
             }
 
             sessionListEl.innerHTML = sessionList.map(s => `
                 <div class="session-item ${s.session_id === sessionId ? 'active' : ''}" onclick="loadSession('${s.session_id}')">
                     <span class="session-icon">💬</span>
-                    <span class="session-title">${escapeHtml(s.title || '新对话')}</span>
+                    <span class="session-title">${escapeHtml(s.title || t('newConversation'))}</span>
                     <span class="session-delete" onclick="event.stopPropagation(); deleteSession('${s.session_id}')">×</span>
                 </div>
             `).join('');
@@ -849,11 +932,12 @@
             createSession();
         }
 
-        // 加载会话
+// 加载会话
         async function loadSession(sid) {
             if (sid === sessionId) return;
 
             sessionId = sid;
+            console.log('Loading session:', sessionId);
             const session = sessionList.find(s => s.session_id === sid);
             if (session) {
                 currentSessionTitle = session.title || '新对话';
@@ -863,12 +947,14 @@
             renderSessionList();
 
             try {
+                console.log('Fetching /api/session/load with:', { session_id: sessionId });
                 const response = await fetch('/api/session/load', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ session_id: sessionId })
                 });
                 const data = await response.json();
+                console.log('Session load response:', data);
                 
                 const chatArea = document.getElementById('chatArea');
 
@@ -880,27 +966,46 @@
                 } else {
                     showWelcomeArea();
                 }
+                
+                // 如果会话已认证，恢复认证状态
+                if (data.authenticated) {
+                    isAuthenticated = true;
+                    updateAuthBadge(true, data.customer_name || '用户');
+                    console.log('Session loaded with auth:', data.customer_name, data.customer_id);
+                } else {
+                    console.log('Session loaded without auth');
+                }
             } catch (error) {
                 console.error('加载会话失败:', error);
                 showWelcomeArea();
             }
         }
 
-        // 显示欢迎区
+            // 显示欢迎区
         function showWelcomeArea() {
             const chatArea = document.getElementById('chatArea');
             chatArea.innerHTML = `
                 <div class="welcome-area" id="welcomeArea">
-                    <div class="welcome-title">🤖 营业受理机器人</div>
-                    <div class="welcome-desc">我可以为您提供以下服务：产品查询、订单办理、账户查询、人工客服等</div>
+                    <div class="welcome-title">🤖 ${I18N[currentLanguage].welcomeTitle}</div>
+                    <div class="welcome-desc">${I18N[currentLanguage].welcomeDesc}<br><br>💡 ${I18N[currentLanguage].loginHint}</div>
                     <div class="quick-actions" id="quickActions">
-                        <button class="quick-action" onclick="sendMessage('我想查询5G套餐')">📱 5G套餐</button>
-                        <button class="quick-action" onclick="sendMessage('推荐')">⭐ 推荐</button>
-                        <button class="quick-action" onclick="sendMessage('查询订单')">📋 订单</button>
-                        <button class="quick-action" onclick="sendMessage('人工客服')">💬 人工客服</button>
+                        <button class="quick-action" onclick="sendMessage(I18N[currentLanguage].action5g)">📱 ${I18N[currentLanguage].action5g}</button>
+                        <button class="quick-action" onclick="sendMessage(I18N[currentLanguage].actionRecommend)">⭐ ${I18N[currentLanguage].actionRecommend}</button>
+                        <button class="quick-action" onclick="sendMessage(I18N[currentLanguage].actionOrder)">📋 ${I18N[currentLanguage].actionOrder}</button>
+                        <button class="quick-action" onclick="sendMessage(I18N[currentLanguage].actionHuman)">💬 ${I18N[currentLanguage].actionHuman}</button>
                     </div>
                 </div>
             `;
+        }
+
+        function updateUIText() {
+            document.querySelector('.sidebar-title').textContent = I18N[currentLanguage].welcomeTitle;
+            document.querySelector('.new-chat-btn span:last-child').textContent = I18N[currentLanguage].newChat;
+            document.querySelector('.menu-section-title').textContent = I18N[currentLanguage].recentChats;
+            document.querySelector('.header-title').textContent = I18N[currentLanguage].currentSession;
+            document.getElementById('messageInput').placeholder = I18N[currentLanguage].inputPlaceholder;
+            document.querySelector('.send-btn').textContent = I18N[currentLanguage].send;
+            renderSessionList();
         }
 
         // 删除会话
@@ -945,6 +1050,10 @@
 
             if (!text) return;
 
+            if (!sessionId) {
+                await createSession();
+            }
+
             // 隐藏欢迎区
             const welcomeArea = document.getElementById('welcomeArea');
             if (welcomeArea) welcomeArea.style.display = 'none';
@@ -957,22 +1066,24 @@
             showLoading();
 
             try {
+                console.log('Sending chat request:', { session_id: sessionId, message: text, language: currentLanguage });
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         session_id: sessionId,
                         message: text,
-                        language: 'zh'
+                        language: currentLanguage
                     })
                 });
-
                 const data = await response.json();
+                console.log('Chat response:', data);
                 removeLoading();
 
                 if (data.success) {
                     addMessage(data.message, 'bot');
-                    
+                    console.log('Chat response type:', data.type);
+
                     // 如果是第一条用户消息，添加到会话列表
                     const messages = document.querySelectorAll('.message.user');
                     if (messages.length === 1 && sessionId) {
@@ -1028,8 +1139,8 @@
             } else {
                 messageDiv.innerHTML = `
                     <div class="message-wrap">
-                        <div class="message-content">${escapeHtml(displayText)}</div>
                         <div class="avatar">${avatar}</div>
+                        <div class="message-content">${escapeHtml(displayText)}</div>
                     </div>
                 `;
             }
@@ -1063,6 +1174,25 @@
         function removeLoading() {
             const loading = document.getElementById('loadingMessage');
             if (loading) loading.remove();
+}
+
+        // 页面加载完成后初始化
+        window.onload = function() {
+            init();
+        };
+
+        // 自动调整输入框高度
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        // 处理键盘事件
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
         }
 
         // 新建对话
@@ -1091,39 +1221,20 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ session_id: sessionId })
                     });
-                } catch (e) {}
+                } catch (e) {
+                    console.error('清除会话失败:', e);
+                }
             }
-
+            // 清除UI
+            const chatArea = document.getElementById('chatArea');
+            if (chatArea) chatArea.innerHTML = '';
             showWelcomeArea();
+            
+            // 重置会话状态
+            sessionId = null;
             isAuthenticated = false;
             updateAuthBadge(false);
-            await createSession();
-        }
-
-        // 切换侧边栏
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebarCollapsed = !sidebarCollapsed;
-            
-            if (sidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-            } else {
-                sidebar.classList.remove('collapsed');
-            }
-        }
-
-        // 自动调整输入框高度
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        }
-
-        // 处理回车键
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
+            currentSessionTitle = '新对话';
         }
 
         // HTML转义
@@ -1133,10 +1244,14 @@
             return div.innerHTML;
         }
 
-        // 页面加载完成后初始化
-        window.onload = function() {
-            init();
-        };
+        // 切换语言
+        function changeLanguage() {
+            currentLanguage = document.getElementById('languageSelect').value;
+            updateUIText();
+            if (document.getElementById('chatArea').querySelector('.welcome-area')) {
+                showWelcomeArea();
+            }
+        }
     </script>
 </body>
 </html>

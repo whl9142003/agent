@@ -25,13 +25,14 @@ SESSION_DIR = BASE_DIR / "data" / "sessions"
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def save_session_to_file(session_id: str, messages: list, title: str = ""):
+def save_session_to_file(session_id: str, messages: list, title: str = "", state_data: dict = None):
     """保存会话到文件"""
     filepath = SESSION_DIR / f"{session_id}.json"
     data = {
         "session_id": session_id,
         "title": title,
         "messages": messages,
+        "state": state_data,
         "updated_at": datetime.now().isoformat()
     }
     with open(filepath, 'w', encoding='utf-8') as f:
@@ -86,6 +87,7 @@ class SendCodeRequest(BaseModel):
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+    language: Optional[str] = "zh"
 
 class SessionRequest(BaseModel):
     session_id: str = ""
@@ -132,8 +134,9 @@ def get_agent() -> CRMAgent:
 
     if _agent is None:
         _api_client = CRMAPIClient(base_url=config.CRM_API_BASE_URL)
-        _llm_service = create_llm()
+        _llm_service = create_llm()  # 使用 config.DEFAULT_PROVIDER，默认是 deepseek
         _agent = CRMAgent(_api_client, _llm_service)
+        print(f"[Routes] Using LLM provider: {config.DEFAULT_PROVIDER}")
 
     return _agent
 
@@ -165,16 +168,38 @@ async def load_session(request: SessionRequest):
     session_id = request.session_id
     if not session_id:
         return {"success": True, "session_id": "", "messages": []}
-    
+
     data = load_session_from_file(session_id)
     if data:
         agent = get_agent()
         state = agent.get_session(session_id)
         state.set_conversation_history(data.get("messages", []))
+
+        # 如果会话文件中有保存的状态信息且服务端会话状态有效，则恢复
+        if data.get("state"):
+            saved_auth = data.get("state", {}).get("authenticated", False)
+            saved_customer_id = data.get("state", {}).get("customer_id")
+
+            # 如果保存的状态是已认证且有客户ID，则恢复认证状态
+            if saved_auth and saved_customer_id:
+                state.from_dict(data.get("state"))
+                print(f"[Session Load] Restored auth state: authenticated={state.authenticated}, customer_id={state.customer_id}")
+                return {
+                    "success": True,
+                    "session_id": session_id,
+                    "messages": data.get("messages", []),
+                    "authenticated": True,
+                    "customer_name": state.customer_name,
+                    "customer_id": state.customer_id
+                }
+
+        # 未认证或状态无效，返回未认证状态
+        print(f"[Session Load] No auth state in file")
         return {
             "success": True,
             "session_id": session_id,
-            "messages": data.get("messages", [])
+            "messages": data.get("messages", []),
+            "authenticated": False
         }
     return {
         "success": True,
@@ -198,7 +223,8 @@ async def save_session(request: SessionRequest):
             if msg.get("role") == "user":
                 title = msg.get("content", "")[:30]
                 break
-        save_session_to_file(session_id, state.conversation_history, title)
+        state_data = state.to_dict()
+        save_session_to_file(session_id, state.conversation_history, title, state_data)
     return {"success": True, "message": "会话已保存"}
 
 
@@ -231,7 +257,8 @@ async def chat(request: ChatRequest):
     try:
         response = await agent.process_message(
             session_id=request.session_id,
-            message=request.message
+            message=request.message,
+            language=request.language
         )
         
         # 保存会话到文件
@@ -242,7 +269,8 @@ async def chat(request: ChatRequest):
                 if msg.get("role") == "user":
                     title = msg.get("content", "")[:30]
                     break
-            save_session_to_file(request.session_id, state.conversation_history, title)
+            state_data = state.to_dict()
+            save_session_to_file(request.session_id, state.conversation_history, title, state_data)
 
         return {
             "success": True,

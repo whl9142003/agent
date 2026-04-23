@@ -1,0 +1,40 @@
+{
+  "session_id": "2267dab4-81c1-4bdc-9b47-379a346742f6",
+  "title": "你号",
+  "messages": [
+    {
+      "role": "user",
+      "content": "你号",
+      "timestamp": "2026-04-23T14:07:48.744761"
+    },
+    {
+      "role": "user",
+      "content": "你好",
+      "timestamp": "2026-04-23T14:08:05.529448"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "你号",
+        "timestamp": "2026-04-23T14:07:48.744761"
+      },
+      {
+        "role": "user",
+        "content": "你好",
+        "timestamp": "2026-04-23T14:08:05.529448"
+      }
+    ],
+    "last_topic": null,
+    "offers": []
+  },
+  "updated_at": "2026-04-23T14:08:05.530461"
+}

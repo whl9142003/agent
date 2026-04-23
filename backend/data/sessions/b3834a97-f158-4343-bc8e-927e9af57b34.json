@@ -1,0 +1,40 @@
+{
+  "session_id": "b3834a97-f158-4343-bc8e-927e9af57b34",
+  "title": "查询订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T14:41:50.504729"
+    },
+    {
+      "role": "assistant",
+      "content": "您好！查询订单需要验证您的身份信息。目前您尚未登录，为了保障您的账户安全，请先登录电信网上营业厅或中国电信APP。\n\n登录后，您可以在“我的订单”或“业务办理记录”中查看所有订单详情，包括办理进度、生效时间等。\n\n如果您需要其他帮助，例如查询套餐或办理业务，也可以告诉我。",
+      "timestamp": "2026-04-23T14:41:57.086469"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "查询订单",
+        "timestamp": "2026-04-23T14:41:50.504729"
+      },
+      {
+        "role": "assistant",
+        "content": "您好！查询订单需要验证您的身份信息。目前您尚未登录，为了保障您的账户安全，请先登录电信网上营业厅或中国电信APP。\n\n登录后，您可以在“我的订单”或“业务办理记录”中查看所有订单详情，包括办理进度、生效时间等。\n\n如果您需要其他帮助，例如查询套餐或办理业务，也可以告诉我。",
+        "timestamp": "2026-04-23T14:41:57.086469"
+      }
+    ],
+    "last_topic": "order",
+    "offers": []
+  },
+  "updated_at": "2026-04-23T14:41:57.086469"
+}

@@ -1,0 +1,30 @@
+{
+  "session_id": "44833529-b64b-4d91-b532-92815ea22740",
+  "title": "订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "订单",
+      "timestamp": "2026-04-23T16:39:26.477370"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "订单",
+        "timestamp": "2026-04-23T16:39:26.477370"
+      }
+    ],
+    "last_topic": "order",
+    "offers": []
+  },
+  "updated_at": "2026-04-23T16:39:27.646520"
+}

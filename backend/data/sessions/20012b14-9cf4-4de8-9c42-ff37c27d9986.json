@@ -1,0 +1,759 @@
+{
+  "session_id": "20012b14-9cf4-4de8-9c42-ff37c27d9986",
+  "title": "你号",
+  "messages": [
+    {
+      "role": "user",
+      "content": "你号",
+      "timestamp": "2026-04-23T14:31:02.979843"
+    },
+    {
+      "role": "assistant",
+      "content": "您好！欢迎使用电信客服助手。  \n\n我可以帮您查询套餐、办理业务、查询订单等。请问您想了解或办理什么电信业务呢？",
+      "timestamp": "2026-04-23T14:31:08.157404"
+    },
+    {
+      "role": "user",
+      "content": "我要登录",
+      "timestamp": "2026-04-23T14:31:14.137954"
+    },
+    {
+      "role": "assistant",
+      "content": "好的，为您提供登录服务。  \n\n请您提供手机号码，我将为您发送短信验证码，完成登录后即可办理业务、查询套餐或订单。",
+      "timestamp": "2026-04-23T14:31:19.338127"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-23T14:31:37.411593"
+    },
+    {
+      "role": "assistant",
+      "content": "✅ 认证成功！\n\n尊敬的用户mola81，您好！\n\n📋 您的订购销售品：\n📦 CUG GROUP Offer\n\n   └─ 📱 CUG Group\n\n      号码：21110000211\n\n      合同号：CONT10155932\n\n      生效时间：2026-04-22\n\n      失效时间：2027-04-22\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000569\n\n      合同号：CONT10155864\n\n      生效时间：2026-04-21\n\n      失效时间：2027-04-21\n\n   └─ 📱 CPE\n\n      号码：20110000201\n\n      合同号：CONT10155864\n\n      生效时间：2026-04-21\n\n      失效时间：2027-04-21\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000574\n\n      合同号：CONT10155772\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n   └─ 📱 CPE\n\n      号码：20110000194\n\n      合同号：CONT10155772\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000575\n\n      合同号：CONT10155764\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n   └─ 📱 CPE\n\n      号码：20110000193\n\n      合同号：CONT10155764\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n📦 Mobile Offer\n\n   └─ 📱 Mobile\n\n      号码：17300000000\n\n      合同号：CONT10155730\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n📦 CPE GOODS Offer\n\n   └─ 📱 CPE\n\n      号码：15300000580\n\n      合同号：CONT10155678\n\n      生效时间：暂无\n\n      失效时间：暂无\n\n📦 CPE GOODS Offer\n\n   └─ 📱 CPE\n\n      号码：15300000581\n\n      合同号：CONT10155674\n\n      生效时间：暂无\n\n      失效时间：暂无\n\n📦 CPE GOODS Offer\n\n   └─ 📱 CPE\n\n      号码：17400000096\n\n      合同号：CONT10155670\n\n      生效时间：暂无\n\n      失效时间：暂无\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000582\n\n      合同号：CONT10155662\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18\n\n   └─ 📱 CPE\n\n      号码：20110000188\n\n      合同号：CONT10155662\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000584\n\n      合同号：CONT10155640\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18\n\n   └─ 📱 CPE\n\n      号码：20110000186\n\n      合同号：CONT10155640\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18",
+      "timestamp": "2026-04-23T14:31:37.931238"
+    },
+    {
+      "role": "user",
+      "content": "我想了解销售品",
+      "timestamp": "2026-04-23T14:31:52.523420"
+    },
+    {
+      "role": "user",
+      "content": "我想了解销售品",
+      "timestamp": "2026-04-23T14:41:15.435042"
+    },
+    {
+      "role": "user",
+      "content": "我想了解销售品",
+      "timestamp": "2026-04-23T14:41:35.747668"
+    },
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T16:17:59.894495"
+    },
+    {
+      "role": "user",
+      "content": "查询我的订单",
+      "timestamp": "2026-04-23T16:19:20.206928"
+    },
+    {
+      "role": "user",
+      "content": "查询我的订单",
+      "timestamp": "2026-04-23T16:19:39.694514"
+    },
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T16:21:20.343100"
+    },
+    {
+      "role": "user",
+      "content": "query orders",
+      "timestamp": "2026-04-23T16:24:34.767169"
+    },
+    {
+      "role": "user",
+      "content": "test",
+      "timestamp": "2026-04-23T16:36:47.957036"
+    },
+    {
+      "role": "assistant",
+      "content": "您好！欢迎您，mola81！😊\n\n我看到您已经成功登录，并且名下有多条电信业务订单和销售品信息。您刚才发送了“test”，请问您是想测试我的功能，还是有具体的业务需要咨询或办理呢？\n\n我可以帮您：\n- 📋 查询套餐详情\n- 📦 查询订单状态\n- 🔄 办理业务变更\n- ❓ 解答其他电信问题\n\n请告诉我您需要什么帮助？",
+      "timestamp": "2026-04-23T16:36:51.670417"
+    },
+    {
+      "role": "user",
+      "content": "test",
+      "timestamp": "2026-04-23T16:36:53.727326"
+    },
+    {
+      "role": "assistant",
+      "content": "您好！mola81，我看到您又发送了“test”。如果您是在测试我的功能，那么我随时在线！😊\n\n目前您已登录，名下可查询订单和销售品信息。请问您是否有具体的电信业务需要咨询或办理？比如：\n\n- 查询某个订单的物流或办理进度\n- 了解您名下的套餐/销售品详情\n- 办理业务变更\n\n请告诉我您的需求，我会全力协助您！",
+      "timestamp": "2026-04-23T16:36:58.934994"
+    },
+    {
+      "role": "user",
+      "content": "查询订单",
+      "timestamp": "2026-04-23T16:37:45.617923"
+    }
+  ],
+  "state": {
+    "authenticated": true,
+    "customer_id": "120000",
+    "customer_name": "mola81",
+    "phone": "15300000574",
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "你号",
+        "timestamp": "2026-04-23T14:31:02.979843"
+      },
+      {
+        "role": "assistant",
+        "content": "您好！欢迎使用电信客服助手。  \n\n我可以帮您查询套餐、办理业务、查询订单等。请问您想了解或办理什么电信业务呢？",
+        "timestamp": "2026-04-23T14:31:08.157404"
+      },
+      {
+        "role": "user",
+        "content": "我要登录",
+        "timestamp": "2026-04-23T14:31:14.137954"
+      },
+      {
+        "role": "assistant",
+        "content": "好的，为您提供登录服务。  \n\n请您提供手机号码，我将为您发送短信验证码，完成登录后即可办理业务、查询套餐或订单。",
+        "timestamp": "2026-04-23T14:31:19.338127"
+      },
+      {
+        "role": "user",
+        "content": "15300000574 Tianyuan@410",
+        "timestamp": "2026-04-23T14:31:37.411593"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ 认证成功！\n\n尊敬的用户mola81，您好！\n\n📋 您的订购销售品：\n📦 CUG GROUP Offer\n\n   └─ 📱 CUG Group\n\n      号码：21110000211\n\n      合同号：CONT10155932\n\n      生效时间：2026-04-22\n\n      失效时间：2027-04-22\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000569\n\n      合同号：CONT10155864\n\n      生效时间：2026-04-21\n\n      失效时间：2027-04-21\n\n   └─ 📱 CPE\n\n      号码：20110000201\n\n      合同号：CONT10155864\n\n      生效时间：2026-04-21\n\n      失效时间：2027-04-21\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000574\n\n      合同号：CONT10155772\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n   └─ 📱 CPE\n\n      号码：20110000194\n\n      合同号：CONT10155772\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000575\n\n      合同号：CONT10155764\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n   └─ 📱 CPE\n\n      号码：20110000193\n\n      合同号：CONT10155764\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n📦 Mobile Offer\n\n   └─ 📱 Mobile\n\n      号码：17300000000\n\n      合同号：CONT10155730\n\n      生效时间：2026-04-20\n\n      失效时间：2027-04-20\n\n📦 CPE GOODS Offer\n\n   └─ 📱 CPE\n\n      号码：15300000580\n\n      合同号：CONT10155678\n\n      生效时间：暂无\n\n      失效时间：暂无\n\n📦 CPE GOODS Offer\n\n   └─ 📱 CPE\n\n      号码：15300000581\n\n      合同号：CONT10155674\n\n      生效时间：暂无\n\n      失效时间：暂无\n\n📦 CPE GOODS Offer\n\n   └─ 📱 CPE\n\n      号码：17400000096\n\n      合同号：CONT10155670\n\n      生效时间：暂无\n\n      失效时间：暂无\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000582\n\n      合同号：CONT10155662\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18\n\n   └─ 📱 CPE\n\n      号码：20110000188\n\n      合同号：CONT10155662\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18\n\n📦 5G Smart Offer\n\n   └─ 📱 Mobile\n\n      号码：15300000584\n\n      合同号：CONT10155640\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18\n\n   └─ 📱 CPE\n\n      号码：20110000186\n\n      合同号：CONT10155640\n\n      生效时间：2026-04-18\n\n      失效时间：2027-04-18",
+        "timestamp": "2026-04-23T14:31:37.931238"
+      },
+      {
+        "role": "user",
+        "content": "我想了解销售品",
+        "timestamp": "2026-04-23T14:31:52.523420"
+      },
+      {
+        "role": "user",
+        "content": "我想了解销售品",
+        "timestamp": "2026-04-23T14:41:15.435042"
+      },
+      {
+        "role": "user",
+        "content": "我想了解销售品",
+        "timestamp": "2026-04-23T14:41:35.747668"
+      },
+      {
+        "role": "user",
+        "content": "查询订单",
+        "timestamp": "2026-04-23T16:17:59.894495"
+      },
+      {
+        "role": "user",
+        "content": "查询我的订单",
+        "timestamp": "2026-04-23T16:19:20.206928"
+      },
+      {
+        "role": "user",
+        "content": "查询我的订单",
+        "timestamp": "2026-04-23T16:19:39.694514"
+      },
+      {
+        "role": "user",
+        "content": "查询订单",
+        "timestamp": "2026-04-23T16:21:20.343100"
+      },
+      {
+        "role": "user",
+        "content": "query orders",
+        "timestamp": "2026-04-23T16:24:34.767169"
+      },
+      {
+        "role": "user",
+        "content": "test",
+        "timestamp": "2026-04-23T16:36:47.957036"
+      },
+      {
+        "role": "assistant",
+        "content": "您好！欢迎您，mola81！😊\n\n我看到您已经成功登录，并且名下有多条电信业务订单和销售品信息。您刚才发送了“test”，请问您是想测试我的功能，还是有具体的业务需要咨询或办理呢？\n\n我可以帮您：\n- 📋 查询套餐详情\n- 📦 查询订单状态\n- 🔄 办理业务变更\n- ❓ 解答其他电信问题\n\n请告诉我您需要什么帮助？",
+        "timestamp": "2026-04-23T16:36:51.670417"
+      },
+      {
+        "role": "user",
+        "content": "test",
+        "timestamp": "2026-04-23T16:36:53.727326"
+      },
+      {
+        "role": "assistant",
+        "content": "您好！mola81，我看到您又发送了“test”。如果您是在测试我的功能，那么我随时在线！😊\n\n目前您已登录，名下可查询订单和销售品信息。请问您是否有具体的电信业务需要咨询或办理？比如：\n\n- 查询某个订单的物流或办理进度\n- 了解您名下的套餐/销售品详情\n- 办理业务变更\n\n请告诉我您的需求，我会全力协助您！",
+        "timestamp": "2026-04-23T16:36:58.934994"
+      },
+      {
+        "role": "user",
+        "content": "查询订单",
+        "timestamp": "2026-04-23T16:37:45.617923"
+      }
+    ],
+    "last_topic": "order",
+    "offers": [
+      {
+        "offerInstanceGuid": "9418828860C0EDCE0C149B5F860EDDA4",
+        "offerInstId": 85533,
+        "prodOfferId": 600003301,
+        "productOfferType": "3",
+        "custId": "120000",
+        "createDate": "2026-04-22 09:40:22",
+        "regionId": "1",
+        "stateCd": "1",
+        "effDate": "2026-04-22 09:40:22",
+        "expDate": "2027-04-22 09:40:22",
+        "subscribeDate": "2026-04-22 09:40:22",
+        "prodOfferInstId": "85533",
+        "offerName": "CUG GROUP Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C0EDCE0C149B5F89BEDDA6",
+            "offerInstId": 85535,
+            "prodOfferId": 600000301,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-22 09:40:22",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-22 09:40:22",
+            "expDate": "2027-04-22 09:40:22",
+            "subscribeDate": "2026-04-22 09:40:22",
+            "accountId": "120400",
+            "prodOfferInstId": "85535",
+            "contractCd": "CONT10155932",
+            "billingNo": "21110000211",
+            "prodInstId": "10034014",
+            "offerName": "CUG Group",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C016090C145899B7B9CF01",
+        "offerInstId": 85510,
+        "prodOfferId": 600000004,
+        "productOfferType": "2",
+        "custId": "120000",
+        "createDate": "2026-04-21 14:13:27",
+        "regionId": "1",
+        "stateCd": "1",
+        "effDate": "2026-04-21 14:13:27",
+        "expDate": "2027-04-21 14:13:27",
+        "subscribeDate": "2026-04-21 14:13:27",
+        "prodOfferInstId": "85510",
+        "offerName": "5G Smart Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C016090C145899BF09CF03",
+            "offerInstId": 85512,
+            "prodOfferId": 600002903,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-21 14:13:27",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-21 14:13:27",
+            "expDate": "2027-04-21 14:13:27",
+            "subscribeDate": "2026-04-21 14:13:27",
+            "accountId": "120020",
+            "prodOfferInstId": "85512",
+            "contractCd": "CONT10155864",
+            "billingNo": "15300000569",
+            "prodInstId": "10034004",
+            "offerName": "Mobile",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          },
+          {
+            "offerInstanceGuid": "9418828860C016090C145899C969CF08",
+            "offerInstId": 85513,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-21 14:13:27",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-21 14:13:27",
+            "expDate": "2027-04-21 14:13:27",
+            "subscribeDate": "2026-04-21 14:13:27",
+            "accountId": "120020",
+            "prodOfferInstId": "85513",
+            "contractCd": "CONT10155864",
+            "billingNo": "20110000201",
+            "prodInstId": "10034005",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C0CA340C140C3C3B5F6539",
+        "offerInstId": 85468,
+        "prodOfferId": 600000004,
+        "productOfferType": "2",
+        "custId": "120000",
+        "createDate": "2026-04-20 15:58:53",
+        "regionId": "1",
+        "stateCd": "1",
+        "effDate": "2026-04-20 15:58:53",
+        "expDate": "2027-04-20 15:58:53",
+        "subscribeDate": "2026-04-20 15:58:53",
+        "prodOfferInstId": "85468",
+        "offerName": "5G Smart Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C0CA340C140C3C3B7F653B",
+            "offerInstId": 85470,
+            "prodOfferId": 600002903,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-20 15:58:53",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-20 15:58:53",
+            "expDate": "2027-04-20 15:58:53",
+            "subscribeDate": "2026-04-20 15:58:53",
+            "accountId": "120020",
+            "prodOfferInstId": "85470",
+            "contractCd": "CONT10155772",
+            "billingNo": "15300000574",
+            "prodInstId": "10033986",
+            "offerName": "Mobile",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          },
+          {
+            "offerInstanceGuid": "9418828860C0CA340C140C3C3C6F6540",
+            "offerInstId": 85471,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-20 15:58:53",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-20 15:58:53",
+            "expDate": "2027-04-20 15:58:53",
+            "subscribeDate": "2026-04-20 15:58:53",
+            "accountId": "120020",
+            "prodOfferInstId": "85471",
+            "contractCd": "CONT10155772",
+            "billingNo": "20110000194",
+            "prodInstId": "10033987",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C0DF6D0C140087A45E6990",
+        "offerInstId": 85464,
+        "prodOfferId": 600000004,
+        "productOfferType": "2",
+        "custId": "120000",
+        "createDate": "2026-04-20 12:34:19",
+        "regionId": "1",
+        "stateCd": "1",
+        "effDate": "2026-04-20 12:34:19",
+        "expDate": "2027-04-20 12:34:19",
+        "subscribeDate": "2026-04-20 12:34:19",
+        "prodOfferInstId": "85464",
+        "offerName": "5G Smart Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C0DF6D0C140087AA3E6992",
+            "offerInstId": 85466,
+            "prodOfferId": 600002903,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-20 12:34:19",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-20 12:34:19",
+            "expDate": "2027-04-20 12:34:19",
+            "subscribeDate": "2026-04-20 12:34:19",
+            "accountId": "120020",
+            "prodOfferInstId": "85466",
+            "contractCd": "CONT10155764",
+            "billingNo": "15300000575",
+            "prodInstId": "10033984",
+            "offerName": "Mobile",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          },
+          {
+            "offerInstanceGuid": "9418828860C0DF6D0C140087AB7E6997",
+            "offerInstId": 85467,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-20 12:34:19",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-20 12:34:19",
+            "expDate": "2027-04-20 12:34:19",
+            "subscribeDate": "2026-04-20 12:34:19",
+            "accountId": "120020",
+            "prodOfferInstId": "85467",
+            "contractCd": "CONT10155764",
+            "billingNo": "20110000193",
+            "prodInstId": "10033985",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C0FA410C13F69EB25D950A",
+        "offerInstId": 85446,
+        "prodOfferId": 600000003,
+        "productOfferType": "3",
+        "custId": "120000",
+        "createDate": "2026-04-20 09:40:26",
+        "regionId": "1",
+        "stateCd": "1",
+        "effDate": "2026-04-20 09:40:26",
+        "expDate": "2027-04-20 09:40:26",
+        "subscribeDate": "2026-04-20 09:40:26",
+        "prodOfferInstId": "85446",
+        "offerName": "Mobile Offer",
+        "staffName": "M-Administrator",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C0FA410C13F69EB3DD950C",
+            "offerInstId": 85448,
+            "prodOfferId": 600002903,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-20 09:40:26",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-20 09:40:26",
+            "expDate": "2027-04-20 09:40:26",
+            "subscribeDate": "2026-04-20 09:40:26",
+            "accountId": "120020",
+            "prodOfferInstId": "85448",
+            "contractCd": "CONT10155730",
+            "billingNo": "17300000000",
+            "prodInstId": "10033976",
+            "offerName": "Mobile",
+            "prodInstState": "1",
+            "staffName": "M-Administrator",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C0F8D20C136A7B322AC862",
+        "offerInstId": 85420,
+        "prodOfferId": 609615488,
+        "productOfferType": "3",
+        "custId": "120000",
+        "createDate": "2026-04-18 16:51:20",
+        "regionId": "1",
+        "stateCd": "1",
+        "subscribeDate": "2026-04-18 16:51:20",
+        "prodOfferInstId": "85420",
+        "offerName": "CPE GOODS Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C0F8D20C136A7B367AC863",
+            "offerInstId": 85421,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-18 16:51:20",
+            "regionId": "1",
+            "stateCd": "1",
+            "subscribeDate": "2026-04-18 16:51:20",
+            "accountId": "120510",
+            "prodOfferInstId": "85421",
+            "contractCd": "CONT10155678",
+            "billingNo": "15300000580",
+            "prodInstId": "10033963",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C060830C136A3CB5BAC71C",
+        "offerInstId": 85418,
+        "prodOfferId": 609615488,
+        "productOfferType": "3",
+        "custId": "120000",
+        "createDate": "2026-04-18 16:47:05",
+        "regionId": "1",
+        "stateCd": "1",
+        "subscribeDate": "2026-04-18 16:47:05",
+        "prodOfferInstId": "85418",
+        "offerName": "CPE GOODS Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C060830C136A3CB71AC71D",
+            "offerInstId": 85419,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-18 16:47:05",
+            "regionId": "1",
+            "stateCd": "1",
+            "subscribeDate": "2026-04-18 16:47:05",
+            "accountId": "120510",
+            "prodOfferInstId": "85419",
+            "contractCd": "CONT10155674",
+            "billingNo": "15300000581",
+            "prodInstId": "10033962",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C03A710C136866F64ABE0D",
+        "offerInstId": 85416,
+        "prodOfferId": 609615488,
+        "productOfferType": "3",
+        "custId": "120000",
+        "createDate": "2026-04-18 16:15:00",
+        "regionId": "1",
+        "stateCd": "1",
+        "subscribeDate": "2026-04-18 16:15:00",
+        "prodOfferInstId": "85416",
+        "offerName": "CPE GOODS Offer",
+        "staffName": "M-Administrator",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C03A710C136866FA4ABE0E",
+            "offerInstId": 85417,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-18 16:15:00",
+            "regionId": "1",
+            "stateCd": "1",
+            "subscribeDate": "2026-04-18 16:15:00",
+            "accountId": "120020",
+            "prodOfferInstId": "85417",
+            "contractCd": "CONT10155670",
+            "billingNo": "17400000096",
+            "prodInstId": "10033961",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "M-Administrator",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C095540C135D5D0BEA8352",
+        "offerInstId": 85412,
+        "prodOfferId": 600000004,
+        "productOfferType": "2",
+        "custId": "120000",
+        "createDate": "2026-04-18 13:02:05",
+        "regionId": "1",
+        "stateCd": "1",
+        "effDate": "2026-04-18 13:02:05",
+        "expDate": "2027-04-18 13:02:05",
+        "subscribeDate": "2026-04-18 13:02:05",
+        "prodOfferInstId": "85412",
+        "offerName": "5G Smart Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C095540C135D5D0F2A8354",
+            "offerInstId": 85414,
+            "prodOfferId": 600002903,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-18 13:02:05",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-18 13:02:05",
+            "expDate": "2027-04-18 13:02:05",
+            "subscribeDate": "2026-04-18 13:02:05",
+            "accountId": "120020",
+            "prodOfferInstId": "85414",
+            "contractCd": "CONT10155662",
+            "billingNo": "15300000582",
+            "prodInstId": "10033959",
+            "offerName": "Mobile",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          },
+          {
+            "offerInstanceGuid": "9418828860C095540C135D5D0F4A8359",
+            "offerInstId": 85415,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-18 13:02:05",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-18 13:02:05",
+            "expDate": "2027-04-18 13:02:05",
+            "subscribeDate": "2026-04-18 13:02:05",
+            "accountId": "120020",
+            "prodOfferInstId": "85415",
+            "contractCd": "CONT10155662",
+            "billingNo": "20110000188",
+            "prodInstId": "10033960",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      },
+      {
+        "offerInstanceGuid": "9418828860C03C5A0C1351B78A2A4789",
+        "offerInstId": 85400,
+        "prodOfferId": 600000004,
+        "productOfferType": "2",
+        "custId": "120000",
+        "createDate": "2026-04-18 09:38:33",
+        "regionId": "1",
+        "stateCd": "1",
+        "effDate": "2026-04-18 09:38:33",
+        "expDate": "2027-04-18 09:38:33",
+        "subscribeDate": "2026-04-18 09:38:33",
+        "prodOfferInstId": "85400",
+        "offerName": "5G Smart Offer",
+        "staffName": "Project Delivery",
+        "orgName": "Mobile Telecom Group",
+        "regionName": "Maroc",
+        "subOfferInst": [
+          {
+            "offerInstanceGuid": "9418828860C03C5A0C1351B79EEA478B",
+            "offerInstId": 85402,
+            "prodOfferId": 600002903,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-18 09:38:33",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-18 09:38:33",
+            "expDate": "2027-04-18 09:38:33",
+            "subscribeDate": "2026-04-18 09:38:33",
+            "accountId": "120400",
+            "prodOfferInstId": "85402",
+            "contractCd": "CONT10155640",
+            "billingNo": "15300000584",
+            "prodInstId": "10033953",
+            "offerName": "Mobile",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          },
+          {
+            "offerInstanceGuid": "9418828860C03C5A0C1351B7AC8A4790",
+            "offerInstId": 85403,
+            "prodOfferId": 609615487,
+            "productOfferType": "1",
+            "custId": "120000",
+            "createDate": "2026-04-18 09:38:33",
+            "regionId": "1",
+            "stateCd": "1",
+            "effDate": "2026-04-18 09:38:33",
+            "expDate": "2027-04-18 09:38:33",
+            "subscribeDate": "2026-04-18 09:38:33",
+            "accountId": "120400",
+            "prodOfferInstId": "85403",
+            "contractCd": "CONT10155640",
+            "billingNo": "20110000186",
+            "prodInstId": "10033954",
+            "offerName": "CPE",
+            "prodInstState": "1",
+            "staffName": "Project Delivery",
+            "orgName": "Mobile Telecom Group",
+            "regionName": "Maroc",
+            "payType": "2"
+          }
+        ]
+      }
+    ]
+  },
+  "updated_at": "2026-04-23T16:37:46.747263"
+}
