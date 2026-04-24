@@ -1,0 +1,60 @@
+{
+  "session_id": "30019b69-0d59-4f12-86d4-20b2b9882133",
+  "title": "5G套餐",
+  "messages": [
+    {
+      "role": "user",
+      "content": "5G套餐",
+      "timestamp": "2026-04-24T10:16:16.602760"
+    },
+    {
+      "role": "user",
+      "content": "我要订购5G Smart Offer",
+      "timestamp": "2026-04-24T10:16:50.229452"
+    },
+    {
+      "role": "assistant",
+      "content": "您好！欢迎来到电信CRM营业受理智能客服。您想订购5G Smart Offer套餐，但目前您处于未登录状态。为了保障您的权益，请先登录验证。请输入手机号码和密码进行登录，格式如：13800138000 123456。登录后我将为您办理5G Smart Offer订购。",
+      "timestamp": "2026-04-24T10:16:52.680471"
+    },
+    {
+      "role": "user",
+      "content": "帮我推荐",
+      "timestamp": "2026-04-24T10:17:38.237945"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "5G套餐",
+        "timestamp": "2026-04-24T10:16:16.602760"
+      },
+      {
+        "role": "user",
+        "content": "我要订购5G Smart Offer",
+        "timestamp": "2026-04-24T10:16:50.229452"
+      },
+      {
+        "role": "assistant",
+        "content": "您好！欢迎来到电信CRM营业受理智能客服。您想订购5G Smart Offer套餐，但目前您处于未登录状态。为了保障您的权益，请先登录验证。请输入手机号码和密码进行登录，格式如：13800138000 123456。登录后我将为您办理5G Smart Offer订购。",
+        "timestamp": "2026-04-24T10:16:52.680471"
+      },
+      {
+        "role": "user",
+        "content": "帮我推荐",
+        "timestamp": "2026-04-24T10:17:38.237945"
+      }
+    ],
+    "last_topic": "recommend",
+    "offers": []
+  },
+  "updated_at": "2026-04-24T10:17:39.057146"
+}

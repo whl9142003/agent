@@ -1,0 +1,30 @@
+{
+  "session_id": "test888",
+  "title": "13800138000 123456",
+  "messages": [
+    {
+      "role": "user",
+      "content": "13800138000 123456",
+      "timestamp": "2026-04-24T11:39:27.290226"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "13800138000 123456",
+        "timestamp": "2026-04-24T11:39:27.290226"
+      }
+    ],
+    "last_topic": null,
+    "offers": []
+  },
+  "updated_at": "2026-04-24T11:39:28.204843"
+}

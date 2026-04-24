@@ -12,6 +12,7 @@ from datetime import datetime
 import config
 from services.knowledge_base import get_knowledge_base, KnowledgeBase
 from services.i18n import t, format_message, format_offers_for_language, get_translations
+from services.knowledge_map import get_product_offer_type_name, get_auto_renew_name, get_status_name, get_brand_name
 
 
 # ============ CRM API Client ============
@@ -93,6 +94,24 @@ class CRMAPIClient:
         )
         return resp.json()
 
+    async def query_offers(self, keyword: str = "") -> Dict:
+        """查询可订购销售品"""
+        resp = self._session.post(
+            f"{self.base_url}/CCInter/open/offers/query",
+            json={"prodOfferNameOrBrandName": keyword},
+            timeout=30
+        )
+        return resp.json()
+
+    async def query_optgroup_offers(self, prod_offer_id: str) -> Dict:
+        """获取附属销售品组"""
+        resp = self._session.post(
+            f"{self.base_url}/CCInter/open/order/optgroup/offers",
+            json={"pkgOfferId": prod_offer_id},
+            timeout=30
+        )
+        return resp.json()
+
     async def get_orders(self, customer_id: str) -> Dict:
         resp = self._session.get(f"{self.base_url}/api/orders/{customer_id}", timeout=30)
         return resp.json()
@@ -121,9 +140,83 @@ class CRMState:
         self.last_topic: Optional[str] = None
         self.offers: List[Dict] = []
 
+        # ========== 记忆 & 上下文管理 ==========
+        # 短期记忆：本轮办理流程
+        self.flow_context = {
+            "step": None,           # 当前流程步骤: recommend/recommend_choose/confirm/ordering
+            "target_offer": None,    # 用户选中的套餐
+            "pending_question": None, # 待确认的问题
+            "last_offer_list": [],   # 上次推荐的套餐列表
+            "clarification_needed": None,  # 待澄清的问题
+        }
+
+        # 长期记忆：用户画像
+        self.user_profile = {
+            "phone": None,           # 手机号
+            "package": "",            # 当前套餐
+            "tenure": 0,              # 在网时长(月)
+            "consumption_level": "",  # 消费等级: 高/中/低
+            "usage_pattern": "",      # 使用习惯: 大流量/普通/保号
+            "preferences": [],       # 历史偏好: ["宽带", "流量多"]
+            "last_interaction": None,  # 上次交互时间
+        }
+
+        # 会话超时管理
+        self.last_message_time = None
+        self.session_timeout_seconds = config.SESSION_CONFIG.get("session_timeout_seconds", 1800)  # 默认30分钟
+
         # 会话配置
         self.max_history = config.SESSION_CONFIG.get("max_history", 20)
         self.context_window = config.SESSION_CONFIG.get("context_window", 10)
+
+    def update_user_profile(self, **kwargs):
+        """更新用户画像"""
+        for key, value in kwargs.items():
+            if key in self.user_profile:
+                self.user_profile[key] = value
+        self.user_profile["last_interaction"] = datetime.now().isoformat()
+
+    def set_flow_step(self, step: str, **context):
+        """设置流程步骤和上下文"""
+        self.flow_context["step"] = step
+        for key, value in context.items():
+            self.flow_context[key] = value
+        self.last_message_time = datetime.now()
+
+    def get_flow_step(self) -> str:
+        """获取当前流程步骤"""
+        return self.flow_context.get("step")
+
+    def clear_flow(self):
+        """清除短期流程记忆"""
+        self.flow_context = {
+            "step": None,
+            "target_offer": None,
+            "pending_question": None,
+            "last_offer_list": [],
+            "clarification_needed": None,
+        }
+
+    def check_session_timeout(self) -> bool:
+        """检查会话是否超时"""
+        from datetime import datetime as dt
+        if self.last_message_time is None:
+            self.last_message_time = dt.now()
+            return False
+
+        now = dt.now()
+        elapsed = (now - self.last_message_time).total_seconds()
+
+        if elapsed > self.session_timeout_seconds:
+            print(f"[State] Session timeout after {elapsed:.0f}s, resetting flow context")
+            self.clear_flow()
+            return True
+
+        return False
+
+    def set_offers(self, offers: List[Dict]):
+        """设置客户订购产品列表"""
+        self.offers = offers
 
     def set_offers(self, offers: List[Dict]):
         """设置客户订购产品列表"""
@@ -304,40 +397,127 @@ class CRMAgent:
             del self.sessions[session_id]
 
     def _format_offers_v2(self, offers: List[Dict], language: str = "zh") -> str:
-        """格式化订购销售品信息_v2"""
+        """格式化订购销售品信息_v2 - 按照规范格式输出"""
         trans = get_translations(language)
         if not offers:
             return trans["no_offers"]
 
         lines = []
-        for offer in offers:
+        lines.append(f"🔹 {trans['product_inquiry']}")
+
+        for idx, offer in enumerate(offers, 1):
             offer_name = offer.get("offerName", trans["no_data"])
+            eff_date = offer.get("effDate", "")
+            exp_date = offer.get("expDate", "")
+            subscribe_date = offer.get("subscribeDate", "")
+            product_type = offer.get("productOfferType", "")
+
+            eff_str = eff_date[:10] if eff_date and len(eff_date) >= 10 else ""
+            exp_str = exp_date[:10] if exp_date and len(exp_date) >= 10 else ""
+
+            lines.append("")
+            lines.append(f"🔸 主套餐{idx}：**{offer_name}**")
+            lines.append(f"　　📅 {trans['effective_time']}：{eff_str or trans['no_data']}")
+            lines.append(f"　　📅 {trans['expiration_time']}：{exp_str or trans['no_data']}")
+            if subscribe_date:
+                sub_str = subscribe_date[:10] if len(subscribe_date) >= 10 else subscribe_date
+                lines.append(f"　　📆 {trans['order_date']}：{sub_str}")
+
+            type_name = get_product_offer_type_name(product_type)
+            lines.append(f"　　📋 {trans['status']}：{type_name}")
+
             sub_offers = offer.get("subOfferInst", [])
 
-            lines.append(f"📦 {offer_name}")
-
             if sub_offers:
+                lines.append("")
+                lines.append(f"▫️ {trans['product_name']}的子销售品：")
                 for sub in sub_offers:
                     sub_name = sub.get("offerName", trans["no_data"])
                     billing_no = sub.get("billingNo", "")
                     contract_cd = sub.get("contractCd", "")
-                    eff_date = sub.get("effDate", "")
-                    exp_date = sub.get("expDate", "")
+                    sub_eff = sub.get("effDate", "")
+                    sub_exp = sub.get("expDate", "")
 
-                    sub_eff = eff_date[:10] if eff_date and len(eff_date) >= 10 else ""
-                    sub_exp = exp_date[:10] if exp_date and len(exp_date) >= 10 else ""
+                    sub_eff_str = sub_eff[:10] if sub_eff and len(sub_eff) >= 10 else ""
+                    sub_exp_str = sub_exp[:10] if sub_exp and len(sub_exp) >= 10 else ""
 
-                    lines.append(f"   └─ 📱 {sub_name}")
+                    lines.append("")
+                    lines.append(f"　　📱 **{sub_name}**")
                     if billing_no:
-                        lines.append(f"      号码：{billing_no}")
+                        lines.append(f"　　　　📞 **号码**：{billing_no}")
                     if contract_cd:
-                        lines.append(f"      合同号：{contract_cd}")
-                    lines.append(f"      {trans['effective_time']}：{sub_eff or trans['no_data']}")
-                    lines.append(f"      {trans['expiration_time']}：{sub_exp or trans['no_data']}")
+                        lines.append(f"　　　　📜 **合约编号**：{contract_cd}")
+                    lines.append(f"　　　　📅 {trans['effective_time']}：{sub_eff_str or trans['no_data']}")
+                    lines.append(f"　　　　📅 {trans['expiration_time']}：{sub_exp_str or trans['no_data']}")
             else:
-                lines.append(f"   (无附属销售品)")
+                lines.append("")
+                lines.append(f"　　（无子销售品）")
 
-        return "\n\n".join(lines)
+        return "\n".join(lines).strip()
+
+    def _format_available_offers(self, offers: List[Dict], language: str = "zh") -> str:
+        """格式化可订购销售品信息 - 包含主销售品和附属销售品组"""
+        trans = get_translations(language)
+        if not offers:
+            return trans["no_offers"]
+
+        from services.knowledge_map import get_brand_name, get_auto_renew_name
+
+        lines = []
+        lines.append(f"🔹 {trans['product_inquiry']}")
+
+        for idx, offer in enumerate(offers, 1):
+            name = offer.get("prodOfferName", trans["no_data"])
+            desc = offer.get("offerDescription", "")
+            fee_desc = offer.get("offerFeeDescription", "")
+            brand_id = offer.get("brandId", "")
+            eff_date = offer.get("effDate", "")
+            exp_date = offer.get("expDate", "")
+            auto_renew = offer.get("automaticRenewal", "")
+
+            brand_name = get_brand_name(brand_id) if brand_id else ""
+            auto_renew_name = get_auto_renew_name(auto_renew) if auto_renew else ""
+
+            eff_str = eff_date[:10] if eff_date and len(eff_date) >= 10 else ""
+            exp_str = exp_date[:10] if exp_date and len(exp_date) >= 10 else ""
+
+            lines.append("")
+            lines.append(f"🔸 {trans['product_inquiry']}{idx}：**{name}**")
+            if desc:
+                lines.append(f"　　📝 描述：{desc}")
+            if fee_desc:
+                lines.append(f"　　💰 资费：{fee_desc}")
+            if brand_name and brand_name != brand_id:
+                lines.append(f"　　🏷️ 品牌：{brand_name}")
+            if eff_str and eff_str != exp_str:
+                lines.append(f"　　📅 生效：{eff_str}")
+                lines.append(f"　　📅 失效：{exp_str}")
+            if auto_renew_name and auto_renew_name != auto_renew:
+                lines.append(f"　　🔄 自动续费：{auto_renew_name}")
+
+            opt_groups = offer.get("optGroups", [])
+            if opt_groups:
+                for group in opt_groups:
+                    group_name = group.get("optGroupName", "")
+                    opt_list = group.get("optOfferList", [])
+
+                    if group_name and opt_list:
+                        lines.append("")
+                        lines.append(f"▫️ {group_name}（可选）：")
+                        for opt in opt_list:
+                            opt_name = opt.get("prodOfferName", trans["no_data"])
+                            opt_desc = opt.get("offerDescription", "")
+                            opt_auto = get_auto_renew_name(opt.get("automaticRenewal", ""))
+
+                            lines.append(f"　　　📱 **{opt_name}**")
+                            if opt_desc and opt_desc != opt_name:
+                                lines.append(f"　　　　　📝 {opt_desc}")
+                            if opt_auto and opt_auto != opt_auto:
+                                lines.append(f"　　　　　🔄 {opt_auto}")
+            else:
+                lines.append(f"　　（无可选附属销售品）")
+
+        return "\n".join(lines).strip()
 
     def _format_order_offers(self, offers: List[Dict], language: str = "zh") -> str:
         """格式化可订购销售品信息"""
@@ -378,7 +558,13 @@ class CRMAgent:
     async def process_message(self, session_id: str, message: str, language: str = "zh") -> Dict[str, Any]:
         """处理用户消息 - 使用 LangChain LLM，支持上下文记忆和国际化"""
         state = self.get_session(session_id)
+
+        # 检查会话超时，自动重置短期流程记忆
+        if state.check_session_timeout():
+            print(f"[Agent] Session {session_id} timeout, cleared flow context")
+
         print(f"[Agent] Session {session_id} state: authenticated={state.authenticated}, customer_id={state.customer_id}")
+        print(f"[Agent] Flow step: {state.get_flow_step()}, User profile: {state.user_profile.get('phone')}")
         trans = get_translations(language)
         
         # 检测并记录话题变化
@@ -399,7 +585,8 @@ class CRMAgent:
         if phone_match and has_space:
             phone = phone_match.group()
             parts = re.split(r"[,\s]+", message)
-            password = next((p for p in parts if len(p) >= 6 and not p.isdigit()), None)
+            # 密码可以是纯数字(6位以上)或字母数字组合
+            password = next((p for p in parts if len(p) >= 6 and p != phone), None)
 
             if password:
                 # 调用登录接口（mock-api中已包含Step 2/3/4的调用）
@@ -435,11 +622,20 @@ class CRMAgent:
                 state.customer_name = cust_name
                 state.phone = phone
                 state.set_offers(offers_list)
-                
+
+                # 更新用户画像
+                current_pkg = customer.get("current_package", "")
+                acct_balance = customer.get("account_balance", 0)
+                state.update_user_profile(
+                    phone=phone,
+                    package=current_pkg,
+                    consumption_level="中" if acct_balance > 100 else "低"
+                )
+
                 # 格式化销售品信息
                 offers_msg = format_offers_for_language(offers_list, language)
 
-                success_msg = f"✅ {trans['login_success']}！\n\n{trans['dear_user']}{cust_name}，{trans['hello']}！\n\n📋 {trans['your_products']}：\n{offers_msg if offers_msg else trans['no_offers']}"
+                success_msg = f"✅ 登录成功！欢迎回来~ 我是营业厅客服小信，帮您查到了您名下的套餐信息：\n\n{offers_msg if offers_msg else trans['no_offers']}\n\n{trans['dear_user']}，请问还有什么可以帮到您的？"
 
                 state.set_topic("login")
                 state.add_message("assistant", success_msg)
@@ -463,29 +659,33 @@ class CRMAgent:
             conversation_context = state.get_conversation_context()
             
             # 构建意图判断提示
-            intent_prompt = f"""你是电信CRM智能客服系统。你的任务是分析用户消息，判断用户的意图类型。
+            intent_prompt = f"""你是电信营业厅智能客服小信，需要快速判断用户想做什么。
 
-用户当前消息: {message}
-登录状态: {'已登录' if state.authenticated else '未登录'}
-客户名称: {state.customer_name or '未登录'}
-客户ID: {state.customer_id or '无'}
+用户说：{message}
+登录状态：{'已登录' if state.authenticated else '未登录'}
+对话历史：{conversation_context[-200:] if conversation_context else '无'}
 
-请判断用户意图类型（回复 order_query 或 offer_query 或 other）：
-1. order_query - 用户想要查询自己的订单、办理记录，如"查询订单"、"我的订单"、"订单进度"、"办理记录"等
-2. offer_query - 用户想要了解、咨询、查询可以订购的产品/套餐/offer，如"有什么套餐"、"我想订购"等
-3. other - 其他意图
+请快速判断（只回一个词）：
+- 推荐套餐：用户问"有什么套餐推荐"、"想换个套餐"、"哪个划算"、"我流量不够用"、"想便宜点"、"家里要宽带"这类
+- 办理业务：用户说"要办理"、"帮我开卡"、"加个流量包"、"降套餐"
+- 查询订单：用户说"查一下我办的订单"、"订单到哪了"、"我的订单"
+- 咨询问题：用户问规则、问费用、问怎么操作等
+- 闲聊/其他：问候、闲聊、不会等
 
-常见order_query表达：
-- "查询订单"、"我的订单"、"订单列表"
-- "订单进度"、"办理进度"、"订单状态"
-- "历史订单"、"最近办理了什么"
+自然口语理解：
+- "我流量不够用" → 推荐套餐（需要流量）
+- "想便宜点" → 推荐套餐（需要性价比）
+- "家里要宽带" → 推荐套餐（需要宽带）
+- "能不能降套餐" → 办理业务（降套餐）
+- "宽带怎么办" → 推荐套餐（需要宽带）
 
-常见offer_query表达：
-- "有什么套餐"、"有哪些产品"
-- "我想订购"、"想办理5G"
-- "推荐个套餐"
+结合上下文判断更准：
+- 用户之前说过流量不够，这次问流量包 → 推荐套餐
+- 用户之前说过想便宜，这次问便宜的 → 推荐套餐
+- 用户说"查查"之前办了什么 → 查询订单
+- 用户问这个月流量怎么算 → 咨询问题
 
-请只回复 order_query 或 offer_query 或 other，不要有其他内容："""
+只返回一个词（推荐套餐/办理业务/查询订单/咨询问题/其他）："""
             
             # 调用LLM判断意图
             print(f"[Agent] Calling LLM for intent check...")
@@ -495,8 +695,8 @@ class CRMAgent:
             print(f"[Agent] Intent check for '{message}': '{intent_text}'")
             print(f"[Agent] Authenticated: {state.authenticated}, CustomerID: {state.customer_id}")
             
-            # 查询订单
-            if "order_query" in intent_text:
+# 查询订单
+            if "查询订单" in intent_text:
                 if state.authenticated and state.customer_id:
                     print(f"[Agent] Querying orders for customer: {state.customer_id}")
                     orders = await self.api_client.get_orders(state.customer_id)
@@ -504,37 +704,58 @@ class CRMAgent:
                     if orders.get("success"):
                         order_list = orders.get("orders", [])
                         if order_list:
-                            order_msg = f"📋 {trans['your_orders']}：\n\n"
+                            order_msg = f"📋 帮您查到了这些订单：\n\n"
                             for order in order_list:
-                                order_msg += f"📦 {order.get('product_name', trans['no_data'])}\n"
-                                order_msg += f"   {trans['status']}：{order.get('status', trans['no_data'])}\n"
-                                order_msg += f"   {trans['order_date']}：{order.get('create_time', trans['no_data'])}\n\n"
+                                product = order.get('product_name', trans['no_data'])
+                                status = order.get('status', trans['no_data'])
+                                create_time = order.get('create_time', trans['no_data'])
+                                order_no = order.get('order_id', '')[-6:] if order.get('order_id') else ''
+
+                                # 友好风格的状态转换
+                                status_text = "已完成" if status == "已完成" else "处理中"
+
+                                order_msg += f"📦 {product}\n"
+                                order_msg += f"   状态：{status_text}\n"
+                                order_msg += f"   订单号尾号：{order_no}\n"
+                                order_msg += f"   时间：{create_time[:16] if create_time else ''}\n\n"
+
+                            order_msg += "请问还有其他需要帮您查的吗？"
                             return {"type": "order_list", "message": order_msg}
                         else:
-                            return {"type": "text", "message": f"{trans['dear_user']}，{trans['no_data']}订单记录。"}
+                            return {"type": "text", "message": f"您目前还没有办理中的订单哦~ 需要帮您推荐什么套餐吗？"}
                     else:
-                        return {"type": "text", "message": f"❌ {trans['error_occurred']}。"}
+                        return {"type": "text", "message": f"抱歉，帮您查订单的时候遇到点问题，请您稍后再试~"}
                 else:
-                    return {"type": "auth_required", "message": f"🔐 {trans['order_inquiry']}{trans['login_failed']}。\n\n请输入手机号码和密码进行登录，格式：手机号码 空格 密码（如：13800138000 123456）"}
-            
-            # 查询可订购销售品
-            should_query = False
-            if state.authenticated and state.customer_id:
-                if "offer_query" in intent_text:
-                    should_query = True
-                    print(f"[Agent] LLM confirmed offer_query, will query offers")
-            
-            if should_query:
-                print(f"[Agent] Querying order offers for customer: {state.customer_id}")
-                order_offers = await self.api_client.get_order_offers(state.customer_id)
-                print(f"[Agent] Order offers result: {order_offers}")
-                if order_offers.get("code") == "0":
-                    offer_list = order_offers.get("resultObj", {}).get("list", [])
-                    formatted_offers = self._format_order_offers(offer_list, language)
+                    return {"type": "auth_required", "message": f"亲，查询订单需要先登录验证一下哦~ 输入手机号和密码登录（手机号 空格 密码）就可以啦"}
+
+            # 推荐套餐 - 查询可订购销售品
+            if "推荐套餐" in intent_text:
+                # 首先调用 /CCInter/open/offers/query 获取主销售品
+                keyword = ""
+                print(f"[Agent] Querying available offers with keyword: {keyword}")
+                offers_result = await self.api_client.query_offers(keyword)
+                print(f"[Agent] Offers result: {offers_result}")
+
+                if offers_result.get("code") == "0":
+                    offer_list = offers_result.get("resultObj", [])
+
+                    # 对每个主销售品，获取其附属销售品组
+                    all_offers = []
+                    for offer in offer_list:
+                        prod_offer_id = str(offer.get("prodOfferId", ""))
+
+                        # 调用 /CCInter/open/order/optgroup/offers 获取附属销售品
+                        optgroup_result = await self.api_client.query_optgroup_offers(prod_offer_id)
+                        opt_groups = optgroup_result.get("resultObj", [])
+
+                        offer["optGroups"] = opt_groups
+                        all_offers.append(offer)
+
+                    formatted_offers = self._format_available_offers(all_offers, language)
                     return {
-                        "type": "order_offers",
-                        "message": f"📦 {trans['your_products']}：\n\n{formatted_offers}",
-                        "offers": offer_list
+                        "type": "available_offers",
+                        "message": formatted_offers + "\n\n请问您想了解哪一款？或者告诉我您的使用习惯（月租预算、流量需求、要不要宽带），我帮您推荐~",
+                        "offers": all_offers
                     }
                 else:
                     return {

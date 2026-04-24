@@ -1,0 +1,30 @@
+{
+  "session_id": "019e8c68-2d18-4d11-9eb4-5419269c5862",
+  "title": "我要查询5G套餐",
+  "messages": [
+    {
+      "role": "user",
+      "content": "我要查询5G套餐",
+      "timestamp": "2026-04-24T09:26:46.532940"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "我要查询5G套餐",
+        "timestamp": "2026-04-24T09:26:46.532940"
+      }
+    ],
+    "last_topic": "product",
+    "offers": []
+  },
+  "updated_at": "2026-04-24T09:26:47.424239"
+}

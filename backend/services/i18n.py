@@ -137,28 +137,58 @@ def format_message(message: str, language: str = "zh") -> str:
 
 
 def format_offers_for_language(offers: list, language: str = "zh") -> str:
-    """Format offers info based on language"""
-    translations = get_translations(language)
+    """Format offers info based on language - 使用新的规范格式"""
+    trans = get_translations(language)
     if not offers:
-        return translations["no_offers"]
+        return trans["no_offers"]
 
     lines = []
-    for offer in offers:
-        offer_name = offer.get("offerName", translations["no_data"])
-        billing_no = offer.get("billingNo", translations["no_data"])
-        contract_cd = offer.get("contractCd", translations["no_data"])
-        eff_date = offer.get("effDate", translations["no_data"])
-        exp_date = offer.get("expDate", translations["no_data"])
+    lines.append(f"🔹 {trans['product_inquiry']}")
 
-        eff_str = _format_date(eff_date, translations["no_data"])
-        exp_str = _format_date(exp_date, translations["no_data"])
+    for idx, offer in enumerate(offers, 1):
+        offer_name = offer.get("offerName", trans["no_data"])
+        eff_date = offer.get("effDate", "")
+        exp_date = offer.get("expDate", "")
+        subscribe_date = offer.get("subscribeDate", "")
+        product_type = offer.get("productOfferType", "")
 
-        lines.append(f"📦 {offer_name}")
-        lines.append(f"   {translations['billing_no']}：{billing_no}")
-        lines.append(f"   {translations['contract_no']}：{contract_cd}")
-        lines.append(f"   {translations['effective_time']}：{eff_str}")
-        lines.append(f"   {translations['expiration_time']}：{exp_str}")
+        eff_str = _format_date(eff_date, trans["no_data"])
+        exp_str = _format_date(exp_date, trans["no_data"])
+        sub_str = subscribe_date[:10] if subscribe_date and len(subscribe_date) >= 10 else ""
+
+        from services.knowledge_map import get_product_offer_type_name
+        type_name = get_product_offer_type_name(product_type)
+
         lines.append("")
+        lines.append(f"🔸 {trans['product_inquiry']}{idx}：**{offer_name}**")
+        lines.append(f"　　📅 {trans['effective_time']}：{eff_str}")
+        lines.append(f"　　📅 {trans['expiration_time']}：{exp_str}")
+        if sub_str:
+            lines.append(f"　　📆 {trans['order_date']}：{sub_str}")
+        lines.append(f"　　📋 {trans['status']}：{type_name}")
+
+        sub_offers = offer.get("subOfferInst", [])
+        if sub_offers:
+            lines.append("")
+            lines.append(f"▫️ {trans['product_name']}的子销售品：")
+            for sub in sub_offers:
+                sub_name = sub.get("offerName", trans["no_data"])
+                billing_no = sub.get("billingNo", "")
+                contract_cd = sub.get("contractCd", "")
+                sub_eff = _format_date(sub.get("effDate", ""), trans["no_data"])
+                sub_exp = _format_date(sub.get("expDate", ""), trans["no_data"])
+
+                lines.append("")
+                lines.append(f"　　📱 **{sub_name}**")
+                if billing_no:
+                    lines.append(f"　　　　📞 **号码**：{billing_no}")
+                if contract_cd:
+                    lines.append(f"　　　　📜 **合约编号**：{contract_cd}")
+                lines.append(f"　　　　📅 {trans['effective_time']}：{sub_eff}")
+                lines.append(f"　　　　📅 {trans['expiration_time']}：{sub_exp}")
+        else:
+            lines.append("")
+            lines.append(f"　　（无子销售品）")
 
     return "\n".join(lines).strip()
 

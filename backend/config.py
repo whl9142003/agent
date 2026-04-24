@@ -39,5 +39,6 @@ PROVIDERS = {
 SESSION_CONFIG = {
     "max_history": 20,      # 最大历史消息数
     "context_window": 10,     # 上下文窗口大小
-    "session_timeout": 3600   # 会话超时时间（秒）
+    "session_timeout_seconds": 1800,  # 会话超时时间（秒），30分钟
+    "long_term_memory": True,  # 启用长期记忆
 }

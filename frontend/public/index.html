@@ -407,7 +407,7 @@
         }
 
         div.message-content {
-            max-width: 85%;
+            max-width: 100%;
             padding: 10px 14px;
             font-size: 15px;
             line-height: 1.4;
@@ -415,6 +415,12 @@
             word-break: break-word;
             box-sizing: border-box;
             display: inline-block;
+        }
+
+        .bot-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.6;
         }
 
         .message-content.loading {
@@ -1126,21 +1132,24 @@
                 }
             }
 
+            // 转换换行为<br>标签，保持格式
+            let displayHtml = escapeHtml(displayText).replace(/\n/g, '<br>');
+
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
-            
+
             if (type === 'bot') {
                 messageDiv.innerHTML = `
                     <div class="message-wrap">
                         <div class="avatar">${avatar}</div>
-                        <div class="message-content">${escapeHtml(displayText)}</div>
+                        <div class="message-content bot-content">${displayHtml}</div>
                     </div>
                 `;
             } else {
                 messageDiv.innerHTML = `
                     <div class="message-wrap">
                         <div class="avatar">${avatar}</div>
-                        <div class="message-content">${escapeHtml(displayText)}</div>
+                        <div class="message-content">${displayHtml}</div>
                     </div>
                 `;
             }
