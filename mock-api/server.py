@@ -870,124 +870,35 @@ async def query_sub_offers(request: dict):
 
 @app.post("/CCInter/open/order/offers")
 async def query_order_offers(request: dict):
-    """可订购销售品查询 - 支持关键字搜索"""
+    """可订购销售品查询 - 调用真实CRM接口"""
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
     cust_id = request.get("custId", "")
     keyword = request.get("prodOfferNameOrBrandName", "")
     print(f"[Mock] query_order_offers called with custId: {cust_id}, keyword: {keyword}")
 
-    # 全部可订购销售品列表
-    all_offers = [
-        {
-            "prodOfferId": 600000004,
-            "offerVersionId": 3,
-            "prodOfferName": "5G Smart Offer",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "offerNbr": "6000000045G",
-            "offerDescription": "M, 5G Smart Offer,Bundled Offer",
-            "offerFeeDescription": "Discount Fee",
-            "brandId": "1,2",
-            "automaticRenewal": "2",
-            "brandName": "全球通"
-        },
-        {
-            "prodOfferId": 600003301,
-            "offerVersionId": 3,
-            "prodOfferName": "CUG GROUP Offer",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "offerNbr": "100003301CUG",
-            "offerDescription": "M, CUG Group,Single Offer",
-            "offerFeeDescription": "Standard Fee",
-            "brandId": "2",
-            "automaticRenewal": "2",
-            "brandName": "神州行"
-        },
-        {
-            "prodOfferId": 600000003,
-            "offerVersionId": 3,
-            "prodOfferName": "Mobile Offer",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "offerNbr": "600000003MOBILE",
-            "offerDescription": "M, Mobile,Single Offer",
-            "offerFeeDescription": "Discount Fee",
-            "brandId": "1",
-            "automaticRenewal": "2",
-            "brandName": "动感地带"
-        },
-        {
-            "prodOfferId": 700000053,
-            "offerVersionId": 3,
-            "prodOfferName": "5G畅享套餐128",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "offerNbr": "600000053",
-            "offerDescription": "5G畅享套餐128元档",
-            "offerFeeDescription": "128元/月",
-            "brandId": "1",
-            "automaticRenewal": "2",
-            "brandName": "全球通"
-        },
-        {
-            "prodOfferId": 700000054,
-            "offerVersionId": 3,
-            "prodOfferName": "5G畅享套餐198",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "offerNbr": "600000054",
-            "offerDescription": "5G畅享套餐198元档",
-            "offerFeeDescription": "198元/月",
-            "brandId": "1",
-            "automaticRenewal": "2",
-            "brandName": "全球通"
-        },
-        {
-            "prodOfferId": 700000055,
-            "offerVersionId": 3,
-            "prodOfferName": "4G自由套餐88",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "offerNbr": "600000055",
-            "offerDescription": "4G自由套餐88元档",
-            "offerFeeDescription": "88元/月",
-            "brandId": "2",
-            "automaticRenewal": "2",
-            "brandName": "神州行"
-        }
-    ]
-
-    # 根据关键字过滤
-    if keyword:
-        keyword_lower = keyword.lower()
-        filtered_offers = [
-            o for o in all_offers
-            if keyword_lower in o.get("prodOfferName", "").lower()
-            or keyword_lower in o.get("brandName", "").lower()
-            or keyword_lower in o.get("offerDescription", "").lower()
-        ]
-    else:
-        filtered_offers = all_offers
-
-    return {
-        "code": "0",
-        "message": "成功",
-        "resultObj": {
-            "pageNum": 1,
-            "pageSize": 10,
-            "total": len(filtered_offers),
-            "pages": 1,
-            "isFirstPage": True,
-            "isLastPage": True,
-            "list": filtered_offers
-        }
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Referer": f"{CRM_API_URL}/ecare/login.view?lang=zh_CN"
     }
+
+    try:
+        response = requests.post(
+            f"{CRM_API_URL}/CCInter/open/order/offers",
+            json={"custId": cust_id, "prodOfferNameOrBrandName": keyword} if keyword else {"custId": cust_id},
+            headers=headers,
+            verify=False,
+            timeout=60
+        )
+        result = response.json()
+        print(f"[Mock] CRM order offers response: code={result.get('code')}, count={len(result.get('resultObj', {}).get('list', []))}")
+        return result
+    except Exception as e:
+        print(f"[Mock] CRM order offers error: {e}")
+        return {"code": "-1", "message": str(e), "resultObj": None}
 
 
 # ============ 账户余额查询 ============
@@ -1007,217 +918,483 @@ async def get_account_balance(customer_id: str):
 
 @app.post("/CCInter/open/offers/query")
 async def query_offers(request: dict):
-    """可订购销售品查询 - 关键字搜索"""
+    """可订购销售品查询 - 调用真实CRM接口"""
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
     keyword = request.get("prodOfferNameOrBrandName", "")
     print(f"[Mock] query_offers called with keyword: {keyword}")
 
-    # Mock data
-    mock_offers = [
-        {
-            "beId": "98d2186f6a6f407888457215cdd61c28",
-            "prodOfferId": 600000004,
-            "prodOfferName": "5G Smart Offer",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "serviceLevelAgreement": "0",
-            "offerNbr": "6000000045G",
-            "defaultTimePeriod": 10000,
-            "offerVersionId": 3,
-            "feeSetFlagId": 2,
-            "pinyinCode": "2",
-            "offerDescription": "M, 5G Smart Offer,Bundled Offer",
-            "brandId": "1,2",
-            "recommend": "1",
-            "automaticRenewal": "2",
-            "offerFeeDescription": "Discount Fee",
-            "orderPoints": 0.0,
-            "offerSaleType": "I",
-            "firstFlag": False
-        },
-        {
-            "beId": "98d2186f6a6f407888457215cdd61c28",
-            "prodOfferId": 600003301,
-            "prodOfferName": "CUG GROUP Offer",
-            "state": "003",
-            "effDate": "2022-11-11 00:00:00",
-            "expDate": "2032-11-11 00:00:00",
-            "serviceLevelAgreement": "0",
-            "offerNbr": "100003301CUG",
-            "defaultTimePeriod": 10000,
-            "offerVersionId": 3,
-            "feeSetFlagId": 2,
-            "pinyinCode": "2",
-            "offerDescription": "M, CUG Group,Single Offer",
-            "brandId": "2",
-            "recommend": "1",
-            "automaticRenewal": "2",
-            "offerFeeDescription": "Standard Fee",
-            "orderPoints": 0.0,
-            "offerSaleType": "I",
-            "firstFlag": False
-        }
-    ]
-
-    # Filter by keyword if provided
-    if keyword:
-        filter_keyword = keyword.lower()
-        mock_offers = [o for o in mock_offers if filter_keyword in o.get("prodOfferName", "").lower() or filter_keyword in o.get("offerDescription", "").lower()]
-
-    return {
-        "code": "0",
-        "message": "成功",
-        "resultObj": mock_offers
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Referer": f"{CRM_API_URL}/ecare/login.view?lang=zh_CN"
     }
+
+    try:
+        payload = {}
+        if keyword:
+            payload["prodOfferNameOrBrandName"] = keyword
+        
+        response = requests.post(
+            f"{CRM_API_URL}/CCInter/open/offers/query",
+            json=payload,
+            headers=headers,
+            verify=False,
+            timeout=60
+        )
+        result = response.json()
+        print(f"[Mock] CRM offers query response: code={result.get('code')}, count={len(result.get('resultObj', []))}")
+        return result
+    except Exception as e:
+        print(f"[Mock] CRM offers query error: {e}")
+        return {"code": "-1", "message": str(e), "resultObj": []}
 
 
 @app.post("/CCInter/open/order/optgroup/offers")
 async def query_optgroup_offers(request: dict):
-    """获取附属销售品组 - 根据主销售品ID获取可选的附属销售品"""
+    """获取附属销售品组 - 调用真实CRM接口"""
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
     pkg_offer_id = request.get("pkgOfferId", "")
     print(f"[Mock] query_optgroup_offers called with pkgOfferId: {pkg_offer_id}")
 
-    # Mock data 根据主销售品ID返回不同数据
-    if str(pkg_offer_id) == "600000004":
-        # 5G Smart Offer 的附属销售品组
-        mock_groups = [
-            {
-                "pageSize": 5,
-                "optOfferList": [
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000319,
-                        "offerVersionId": 3,
-                        "prodOfferName": "78 Per-month",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "M, Main Price Plan",
-                        "offerSaleType": "T",
-                        "pinyinCode": 2
-                    },
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000318,
-                        "offerVersionId": 3,
-                        "prodOfferName": "58 Per-month",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "M, Main Price Plan",
-                        "offerSaleType": "T",
-                        "pinyinCode": 2
-                    },
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000317,
-                        "offerVersionId": 3,
-                        "prodOfferName": "38 Per-month",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "M, Main Price Plan",
-                        "offerSaleType": "T",
-                        "pinyinCode": 2
-                    }
-                ],
-                "optGroupName": "MainPricePlanPack",
-                "optGroupId": "60001",
-                "relaTypeId": "2"
-            },
-            {
-                "pageSize": 5,
-                "optOfferList": [
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000201,
-                        "offerVersionId": 3,
-                        "prodOfferName": "Call 100",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "Voice add-on",
-                        "offerSaleType": "T",
-                        "pinyinCode": 1
-                    },
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000202,
-                        "offerVersionId": 3,
-                        "prodOfferName": "Call 200",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "Voice add-on",
-                        "offerSaleType": "T",
-                        "pinyinCode": 1
-                    }
-                ],
-                "optGroupName": "VoicePack",
-                "optGroupId": "60002",
-                "relaTypeId": "2"
-            },
-            {
-                "pageSize": 5,
-                "optOfferList": [
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000301,
-                        "offerVersionId": 3,
-                        "prodOfferName": "Data 5GB",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "Data add-on",
-                        "offerSaleType": "T",
-                        "pinyinCode": 3
-                    },
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000302,
-                        "offerVersionId": 3,
-                        "prodOfferName": "Data 10GB",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "Data add-on",
-                        "offerSaleType": "T",
-                        "pinyinCode": 3
-                    }
-                ],
-                "optGroupName": "DataPack",
-                "optGroupId": "60003",
-                "relaTypeId": "2"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Referer": f"{CRM_API_URL}/ecare/login.view?lang=zh_CN"
+    }
+
+    try:
+        response = requests.post(
+            f"{CRM_API_URL}/CCInter/open/order/optgroup/offers",
+            json={"pkgOfferId": pkg_offer_id},
+            headers=headers,
+            verify=False,
+            timeout=60
+        )
+        result = response.json()
+        print(f"[Mock] CRM optgroup offers response: code={result.get('code')}, count={len(result.get('resultObj', []))}")
+        return result
+    except Exception as e:
+        print(f"[Mock] CRM optgroup offers error: {e}")
+        return {"code": "-1", "message": str(e), "resultObj": []}
+
+
+# ============ 客户账户查询 ============
+@app.post("/CCInter/open/cust/accounts")
+async def query_customer_accounts(request: dict):
+    """查询客户账户信息 - 调用真实CRM接口并分页获取"""
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    
+    cust_id = request.get("custId", "")
+    print(f"[Mock] query_customer_accounts called with custId: {cust_id}")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Referer": f"{CRM_API_URL}/ecare/login.view?lang=zh_CN"
+    }
+
+    all_accounts = []
+    page_num = 1
+    page_size = 10
+
+    try:
+        while True:
+            try:
+                response = requests.post(
+                    f"{CRM_API_URL}/CCInter/open/cust/accounts",
+                    json={"custId": cust_id, "pageNum": page_num, "pageSize": page_size},
+                    headers=headers,
+                    verify=False,
+                    timeout=60
+                )
+            except Exception as e:
+                print(f"[Mock] Request error: {e}")
+                return {"code": "-1", "message": f"请求CRM接口失败: {str(e)}", "resultObj": None}
+            
+            try:
+                result = response.json()
+            except Exception as e:
+                print(f"[Mock] JSON parse error: {e}, response={response.text[:200] if response.text else 'empty'}")
+                return {"code": "-1", "message": f"解析响应失败: {str(e)}", "resultObj": None}
+            
+            if result.get("code") != "0":
+                print(f"[Mock] CRM accounts error: {result}")
+                return result
+            
+            result_obj = result.get("resultObj", {})
+            page_info = result_obj.get("list", [])
+            all_accounts.extend(page_info)
+            
+            is_last_page = result_obj.get("isLastPage", True)
+            print(f"[Mock] Page {page_num}: got {len(page_info)} accounts, isLastPage={is_last_page}")
+            
+            if is_last_page or not page_info:
+                break
+            page_num += 1
+
+        return {
+            "code": "0",
+            "message": "成功",
+            "resultObj": {
+                "pageNum": 1,
+                "pageSize": len(all_accounts),
+                "total": len(all_accounts),
+                "pages": 1,
+                "isFirstPage": True,
+                "isLastPage": True,
+                "list": all_accounts
             }
-        ]
-    else:
-        mock_groups = [
-            {
-                "pageSize": 5,
-                "optOfferList": [
-                    {
-                        "pageSize": 5,
-                        "prodOfferId": 600000319,
-                        "offerVersionId": 3,
-                        "prodOfferName": "Basic Plan",
-                        "defaultTimePeriod": 12,
-                        "feeSetFlagId": 7,
-                        "automaticRenewal": "1",
-                        "offerDescription": "M, Main Price Plan",
-                        "offerSaleType": "T",
-                        "pinyinCode": 2
-                    }
-                ],
-                "optGroupName": "MainPricePlanPack",
-                "optGroupId": "60001",
-                "relaTypeId": "2"
-            }
-        ]
+        }
+    except Exception as e:
+        print(f"[Mock] CRM accounts error: {e}")
+        return {"code": "-1", "message": str(e), "resultObj": None}
+
+
+# ============ 销售品成员配置 ============
+@app.post("/CCInter/open/offer/members")
+async def query_offer_members(request: dict):
+    """查询销售品成员配置"""
+    prod_offer_id = request.get("prodOfferId", "")
+    prod_list = request.get("prodOfferList", [])
+    print(f"[Mock] query_offer_members called with prodOfferId: {prod_offer_id}")
 
     return {
         "code": "0",
         "message": "成功",
-        "resultObj": mock_groups
+        "resultObj": [
+            {
+                "offerProdRelaId": 100082,
+                "maxCount": 5,
+                "minCount": 1,
+                "productId": 100002902,
+                "prodOfferId": 600002903,
+                "offerVersionId": 3,
+                "defaultCount": 1,
+                "beId": "98d2186f6a6f407888457215cdd61c28",
+                "firstFlag": False,
+                "pkgProdOfferId": prod_offer_id or 600000004,
+                "prodOfferName": "Mobile",
+                "prodFuncTypeId": 1,
+                "productName": "Mobile",
+                "prodVersionId": 3,
+                "accessTypeList": [
+                    {
+                        "prodAccessTypeId": 80000582,
+                        "productId": 100002902,
+                        "prodVersionId": 3,
+                        "accessTypeId": 811,
+                        "accessType": "Mobile",
+                        "state": "1"
+                    }
+                ],
+                "prodServiceList": [
+                    {
+                        "serviceOfferId": 2101,
+                        "actionCd": "5101",
+                        "productId": 100002902,
+                        "prodOfferId": 600002903,
+                        "offerServiceOfferId": 100060101,
+                        "actionName": "新装",
+                        "prodActionCd": "101"
+                    }
+                ]
+            },
+            {
+                "offerProdRelaId": 100083,
+                "maxCount": 6,
+                "minCount": 1,
+                "productId": 100000004,
+                "prodOfferId": 609615487,
+                "offerVersionId": 3,
+                "defaultCount": 1,
+                "beId": "98d2186f6a6f407888457215cdd61c28",
+                "firstFlag": False,
+                "pkgProdOfferId": prod_offer_id or 600000004,
+                "prodOfferName": "CPE",
+                "prodFuncTypeId": 1,
+                "productName": "CPE",
+                "prodVersionId": 3,
+                "accessTypeList": [
+                    {
+                        "prodAccessTypeId": 80000589,
+                        "productId": 100000004,
+                        "prodVersionId": 3,
+                        "accessTypeId": 830,
+                        "accessType": "CPE",
+                        "state": "1"
+                    }
+                ],
+                "prodServiceList": [
+                    {
+                        "serviceOfferId": 4101,
+                        "actionCd": "5101",
+                        "productId": 100000004,
+                        "prodOfferId": 609615487,
+                        "offerServiceOfferId": 100060051,
+                        "actionName": "新装",
+                        "prodActionCd": "101"
+                    }
+                ]
+            }
+        ]
+    }
+
+
+# ============ 可选号码查询 ============
+@app.post("/CCInter/open/offer/serviceNo")
+async def query_service_numbers(request: dict):
+    """查询可选号码"""
+    project_code = request.get("projectCode", "")
+    access_type = request.get("accessType", "")
+    print(f"[Mock] query_service_numbers called with projectCode: {project_code}, accessType: {access_type}")
+
+    # 生成模拟号码列表
+    avail_numbers = []
+    base_numbers = ["153", "188", "189", "199", "177"]
+    for i in range(20):
+        prefix = base_numbers[i % len(base_numbers)]
+        avail_numbers.append({
+            "mmeEid": 1004531 + i,
+            "mmeVersion": 1,
+            "code": f"{prefix}0000{i:04d}",
+            "servicestatus": "1",
+            "pageNum": 0,
+            "pageSize": 0
+        })
+
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "availNumbers": avail_numbers,
+            "preoccupyNumbers": []
+        }
+    }
+
+
+# ============ 资源查询(ICCID) ============
+@app.post("/CCInter/open/resource/query")
+async def query_resources(request: dict):
+    """查询ICCID资源"""
+    root_category_id = request.get("rootCategoryId", "")
+    category_id = request.get("categoryId", "")
+    life_status = request.get("lifeStatus", "1")
+    print(f"[Mock] query_resources called with categoryId: {category_id}")
+
+    # 生成模拟ICCID列表
+    iccid_list = []
+    for i in range(10):
+        iccid_list.append({
+            "beId": "98d2186f6a6f407888457215cdd61c28",
+            "resInvCode": f"202406131000{5857 + i:04d}",
+            "categoryId": category_id or "CS10002",
+            "categoryType": "Orderly",
+            "modelId": "M10047",
+            "brandId": "A10025",
+            "resManufacturerId": 200001,
+            "unit": 1003,
+            "status": "1",
+            "resStoreId": "1C697A5EB7907D410B253DC9630F148E",
+            "skuId": "1C697A5EB7902CB50ABC9EA7215998A2",
+            "version": 0,
+            "lifeStatus": life_status,
+            "resStoreName": "mola8STORE",
+            "categoryName": "SIM Cards",
+            "brandName": "Standard",
+            "resManufactuerName": "HuaWei",
+            "modelName": "SIM Cards1",
+            "simInfo": {
+                "resInvCode": f"202406131000{5857 + i:04d}",
+                "cardType": "SIM",
+                "iccid": f"8986000000000000{1498 + i:04d}",
+                "imsi": f"46000000000{1498 + i:04d}",
+                "comSupport": "1,2"
+            },
+            "skuName": "M-StandardSIM/3G/4G",
+            "forIccid": True
+        })
+
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "pageNum": 1,
+            "pageSize": 10,
+            "total": 10,
+            "pages": 1,
+            "isFirstPage": True,
+            "isLastPage": True,
+            "list": iccid_list
+        }
+    }
+
+
+# ============ 订单提交 ============
+@app.post("/CCInter/open/order/submit")
+async def submit_order(request: dict):
+    """提交订单"""
+    cust_id = request.get("custId", "")
+    cust_name = request.get("custName", "")
+    print(f"[Mock] submit_order called with custId: {cust_id}")
+
+    # 生成订单ID
+    order_id = f"10156307"
+    import random
+    order_id = f"10{random.randint(1000000, 9999999)}"
+
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "pageSize": 5,
+            "custOrderId": order_id,
+            "feeItemDetailList": [
+                {
+                    "pageSize": 5,
+                    "beId": "98d2186f6a6f407888457215cdd61c28",
+                    "feeItemGuid": "9418828860C06ACD0C155C0EA08E5EE1",
+                    "custOrderId": order_id,
+                    "offerId": 600000004,
+                    "offerName": "5G Smart Offer",
+                    "feeItemId": 103,
+                    "feeItemName": "选号费",
+                    "feeType": "89J",
+                    "allowNext": "1",
+                    "taxRate": "15.00",
+                    "moneyUnit": 1049,
+                    "totalFee": "0.00",
+                    "favorFee": "0.00",
+                    "paidFee": "0.00",
+                    "paymentMethod": "1",
+                    "taxFee": "0.00",
+                    "installGuid": "c4922eceb65d40c0814cd62be43620f5",
+                    "state": "14",
+                    "stateDate": datetime.now().strftime("%Y-%m-%d"),
+                    "isNextPay": "1",
+                    "serialNo": datetime.now().strftime("%Y%m%d%H%M%S") + "6579",
+                    "allowPaidinCash": "1",
+                    "paymentType": "2",
+                    "feeItemCode": "103",
+                    "principalFee": "0.00"
+                }
+            ],
+            "hasResRecory": False
+        }
+    }
+
+
+# ============ 费用查询 ============
+@app.post("/CCInter/open/order/fee/query")
+async def query_order_fee(request: dict):
+    """订单费用查询/报价"""
+    cust_id = request.get("custId", "")
+    pkg_offer = request.get("pkgOffer", {})
+    basic_offers = request.get("basicOffers", [])
+    account_id = request.get("accountId", "")
+    print(f"[Mock] query_order_fee called with custId: {cust_id}")
+
+    offer_id = pkg_offer.get("offerId", 600000004)
+    offer_name = "5G Smart Offer"
+
+    # 查找主销售品名称
+    all_offers = [
+        {"prodOfferId": 600000004, "prodOfferName": "5G Smart Offer", "offerFeeDescription": "128元/月"},
+        {"prodOfferId": 600003301, "prodOfferName": "CUG GROUP Offer", "offerFeeDescription": "88元/月"},
+        {"prodOfferId": 600000003, "prodOfferName": "Mobile Offer", "offerFeeDescription": "58元/月"},
+    ]
+    for o in all_offers:
+        if o["prodOfferId"] == offer_id:
+            offer_name = o["prodOfferName"]
+            break
+
+    # 计算费用
+    base_fee = 0.00
+    number_fee = 0.00
+
+    fee_items = []
+
+    # 主套餐费用
+    fee_items.append({
+        "pageSize": 5,
+        "beId": "98d2186f6a6f407888457215cdd61c28",
+        "feeItemGuid": "9418828860C06ACD0C155C0EA08E5EE1",
+        "custOrderId": "",
+        "offerId": offer_id,
+        "offerName": offer_name,
+        "feeItemId": 101,
+        "feeItemName": "套餐月租费",
+        "feeType": "89J",
+        "allowNext": "1",
+        "taxRate": "15.00",
+        "moneyUnit": 1031,
+        "totalFee": "128.00",
+        "favorFee": "0.00",
+        "paidFee": "0.00",
+        "paymentMethod": "1",
+        "taxFee": "0.00",
+        "state": "14",
+        "stateDate": datetime.now().strftime("%Y-%m-%d"),
+        "isNextPay": "1",
+        "serialNo": datetime.now().strftime("%Y%m%d%H%M%S") + "0001",
+        "allowPaidinCash": "1",
+        "paymentType": "2",
+        "feeItemCode": "101",
+        "principalFee": "128.00"
+    })
+
+    # 选号费
+    if basic_offers:
+        for i, bo in enumerate(basic_offers):
+            billing_no = bo.get("billingNo", "")
+            if billing_no:
+                fee_items.append({
+                    "pageSize": 5,
+                    "beId": "98d2186f6a6f407888457215cdd61c28",
+                    "feeItemGuid": f"feeitem{1000+i}",
+                    "custOrderId": "",
+                    "offerId": bo.get("offerId", 0),
+                    "offerName": "选号费",
+                    "feeItemId": 103,
+                    "feeItemName": "选号费 - " + billing_no,
+                    "feeType": "89J",
+                    "allowNext": "1",
+                    "taxRate": "15.00",
+                    "moneyUnit": 1031,
+                    "totalFee": "0.00",
+                    "favorFee": "0.00",
+                    "paidFee": "0.00",
+                    "paymentMethod": "1",
+                    "taxFee": "0.00",
+                    "state": "14",
+                    "stateDate": datetime.now().strftime("%Y-%m-%d"),
+                    "isNextPay": "1",
+                    "serialNo": datetime.now().strftime("%Y%m%d%H%M%S") + f"{i:04d}",
+                    "allowPaidinCash": "1",
+                    "paymentType": "2",
+                    "feeItemCode": "103",
+                    "principalFee": "0.00"
+                })
+
+    total_fee = sum(float(f.get("totalFee", "0")) for f in fee_items)
+
+    return {
+        "code": "0",
+        "message": "成功",
+        "resultObj": {
+            "pageSize": 5,
+            "custOrderId": "",
+            "feeItemDetailList": fee_items,
+            "totalFee": str(total_fee),
+            "hasResRecory": False
+        }
     }
 
 

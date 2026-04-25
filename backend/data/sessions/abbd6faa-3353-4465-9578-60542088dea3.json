@@ -1,0 +1,50 @@
+{
+  "session_id": "abbd6faa-3353-4465-9578-60542088dea3",
+  "title": "订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "订单",
+      "timestamp": "2026-04-24T21:58:13.865224"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-24T21:58:22.054977"
+    },
+    {
+      "role": "assistant",
+      "content": "✅ 登录成功！欢迎回来~ 我是营业厅客服小信，帮您查到了您名下的套餐信息：\n\n暂无订购销售品\n\n尊敬的用户，请问还有什么可以帮到您的？",
+      "timestamp": "2026-04-24T21:58:43.378576"
+    }
+  ],
+  "state": {
+    "authenticated": true,
+    "customer_id": "120000",
+    "customer_name": "mola81",
+    "phone": "15300000574",
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "订单",
+        "timestamp": "2026-04-24T21:58:13.865224"
+      },
+      {
+        "role": "user",
+        "content": "15300000574 Tianyuan@410",
+        "timestamp": "2026-04-24T21:58:22.054977"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ 登录成功！欢迎回来~ 我是营业厅客服小信，帮您查到了您名下的套餐信息：\n\n暂无订购销售品\n\n尊敬的用户，请问还有什么可以帮到您的？",
+        "timestamp": "2026-04-24T21:58:43.378576"
+      }
+    ],
+    "last_topic": "login",
+    "offers": []
+  },
+  "updated_at": "2026-04-24T21:58:43.378576"
+}

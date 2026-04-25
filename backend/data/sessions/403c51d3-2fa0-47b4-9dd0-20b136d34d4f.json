@@ -1,0 +1,40 @@
+{
+  "session_id": "403c51d3-2fa0-47b4-9dd0-20b136d34d4f",
+  "title": "订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "订单",
+      "timestamp": "2026-04-24T19:38:23.172428"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-24T19:38:29.302364"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "订单",
+        "timestamp": "2026-04-24T19:38:23.172428"
+      },
+      {
+        "role": "user",
+        "content": "15300000574 Tianyuan@410",
+        "timestamp": "2026-04-24T19:38:29.302364"
+      }
+    ],
+    "last_topic": "order",
+    "offers": []
+  },
+  "updated_at": "2026-04-24T19:38:29.490048"
+}

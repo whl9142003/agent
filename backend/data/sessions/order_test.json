@@ -1,0 +1,30 @@
+{
+  "session_id": "order_test",
+  "title": "帮我办理一个套餐",
+  "messages": [
+    {
+      "role": "user",
+      "content": "帮我办理一个套餐",
+      "timestamp": "2026-04-24T17:15:07.193292"
+    }
+  ],
+  "state": {
+    "authenticated": false,
+    "customer_id": null,
+    "customer_name": null,
+    "phone": null,
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "帮我办理一个套餐",
+        "timestamp": "2026-04-24T17:15:07.193292"
+      }
+    ],
+    "last_topic": "product",
+    "offers": []
+  },
+  "updated_at": "2026-04-24T17:15:08.503627"
+}

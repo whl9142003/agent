@@ -837,6 +837,11 @@
         let currentSessionTitle = I18N.zh.newConversation;
         let isAuthenticated = false;
         let sidebarCollapsed = false;
+        // 订购流程状态
+        let currentAccounts = [];
+        let currentMembers = [];
+        let currentNumbers = [];
+        let currentIccids = [];
 
 // 初始化
         async function init() {
@@ -1106,6 +1111,31 @@
                     if (data.type === 'auth_success') {
                         isAuthenticated = true;
                         updateAuthBadge(true, data.data?.customer?.name);
+                        // 显示已订购销售品
+                        if (data.data?.offers && data.data.offers.length > 0) {
+                            console.log('Customer offers:', data.data.offers);
+                        }
+                    }
+
+                    // 订购相关类型处理
+                    if (data.type === 'order_select_offer' || data.type === 'order_select_account' || data.type === 'order_select_number') {
+                        console.log('Order flow:', data.type);
+                        if (data.accounts) {
+                            currentAccounts = data.accounts;
+                        }
+                        if (data.members) {
+                            currentMembers = data.members;
+                        }
+                        if (data.avail_numbers) {
+                            currentNumbers = data.avail_numbers;
+                        }
+                        if (data.iccids) {
+                            currentIccids = data.iccids;
+                        }
+                    }
+
+                    if (data.type === 'order_success') {
+                        addMessage(data.message + (data.order_id ? '\n\n📋 订单号：' + data.order_id : ''), 'bot');
                     }
                 } else {
                     addMessage('抱歉，处理您的请求时发生错误。', 'bot');

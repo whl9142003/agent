@@ -1,0 +1,63 @@
+{
+  "session_id": "fresh_order_-8260793",
+  "title": "13800138000 123456",
+  "messages": [
+    {
+      "role": "user",
+      "content": "13800138000 123456",
+      "timestamp": "2026-04-24T17:16:33.738416"
+    },
+    {
+      "role": "assistant",
+      "content": "✅ 登录成功！欢迎回来~ 我是营业厅客服小信，帮您查到了您名下的套餐信息：\n\n🔹 产品查询\n\n🔸 产品查询1：**暂无**\n　　📅 生效时间：2024-01-01 00:00:00\n　　📅 失效时间：2034-01-01 00:00:00\n　　📋 状态：未知类型\n\n　　（无子销售品）\n\n尊敬的用户，请问还有什么可以帮到您的？",
+      "timestamp": "2026-04-24T17:16:33.807783"
+    },
+    {
+      "role": "user",
+      "content": "要办理套餐",
+      "timestamp": "2026-04-24T17:16:35.841013"
+    }
+  ],
+  "state": {
+    "authenticated": true,
+    "customer_id": "C004",
+    "customer_name": "用户8000",
+    "phone": "13800138000",
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "13800138000 123456",
+        "timestamp": "2026-04-24T17:16:33.738416"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ 登录成功！欢迎回来~ 我是营业厅客服小信，帮您查到了您名下的套餐信息：\n\n🔹 产品查询\n\n🔸 产品查询1：**暂无**\n　　📅 生效时间：2024-01-01 00:00:00\n　　📅 失效时间：2034-01-01 00:00:00\n　　📋 状态：未知类型\n\n　　（无子销售品）\n\n尊敬的用户，请问还有什么可以帮到您的？",
+        "timestamp": "2026-04-24T17:16:33.807783"
+      },
+      {
+        "role": "user",
+        "content": "要办理套餐",
+        "timestamp": "2026-04-24T17:16:35.841013"
+      }
+    ],
+    "last_topic": "product",
+    "offers": [
+      {
+        "prodOfferId": 700000053,
+        "prodOfferName": "5G畅享套餐128",
+        "offerNbr": "600000053",
+        "offerDescription": "5G畅享套餐128元档",
+        "offerFeeDescription": "128元/月",
+        "state": "003",
+        "effDate": "2024-01-01 00:00:00",
+        "expDate": "2034-01-01 00:00:00",
+        "brandId": "1",
+        "brandName": "全球通"
+      }
+    ]
+  },
+  "updated_at": "2026-04-24T17:16:37.083475"
+}

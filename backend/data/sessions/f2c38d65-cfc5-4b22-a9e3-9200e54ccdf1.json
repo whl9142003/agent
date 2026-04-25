@@ -1,0 +1,90 @@
+{
+  "session_id": "f2c38d65-cfc5-4b22-a9e3-9200e54ccdf1",
+  "title": "订单",
+  "messages": [
+    {
+      "role": "user",
+      "content": "订单",
+      "timestamp": "2026-04-24T18:03:05.204460"
+    },
+    {
+      "role": "user",
+      "content": "15300000574 Tianyuan@410",
+      "timestamp": "2026-04-24T18:03:13.382626"
+    },
+    {
+      "role": "assistant",
+      "content": "✅ 登录成功！欢迎回来~ 我是营业厅客服小信，帮您查到了您名下的套餐信息：\n\n暂无订购销售品\n\n尊敬的用户，请问还有什么可以帮到您的？",
+      "timestamp": "2026-04-24T18:03:13.835816"
+    },
+    {
+      "role": "user",
+      "content": "我想订购销售品",
+      "timestamp": "2026-04-24T18:03:25.100480"
+    },
+    {
+      "role": "user",
+      "content": "我想订购5G Smart Offer",
+      "timestamp": "2026-04-24T18:04:31.697425"
+    },
+    {
+      "role": "user",
+      "content": "1",
+      "timestamp": "2026-04-24T18:04:38.655533"
+    },
+    {
+      "role": "user",
+      "content": "1,2",
+      "timestamp": "2026-04-24T18:04:54.303322"
+    }
+  ],
+  "state": {
+    "authenticated": true,
+    "customer_id": "120000",
+    "customer_name": "mola81",
+    "phone": "15300000574",
+    "account_balance": 0.0,
+    "current_package": "",
+    "current_order": null,
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "订单",
+        "timestamp": "2026-04-24T18:03:05.204460"
+      },
+      {
+        "role": "user",
+        "content": "15300000574 Tianyuan@410",
+        "timestamp": "2026-04-24T18:03:13.382626"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ 登录成功！欢迎回来~ 我是营业厅客服小信，帮您查到了您名下的套餐信息：\n\n暂无订购销售品\n\n尊敬的用户，请问还有什么可以帮到您的？",
+        "timestamp": "2026-04-24T18:03:13.835816"
+      },
+      {
+        "role": "user",
+        "content": "我想订购销售品",
+        "timestamp": "2026-04-24T18:03:25.100480"
+      },
+      {
+        "role": "user",
+        "content": "我想订购5G Smart Offer",
+        "timestamp": "2026-04-24T18:04:31.697425"
+      },
+      {
+        "role": "user",
+        "content": "1",
+        "timestamp": "2026-04-24T18:04:38.655533"
+      },
+      {
+        "role": "user",
+        "content": "1,2",
+        "timestamp": "2026-04-24T18:04:54.303322"
+      }
+    ],
+    "last_topic": "product",
+    "offers": []
+  },
+  "updated_at": "2026-04-24T18:04:55.505688"
+}
